@@ -3,9 +3,13 @@
 import random
 import uuid
 from datetime import datetime, timedelta
+from pathlib import Path
 from typing import Any, Dict, List
 
+import pandas as pd
+import yaml
 from faker import Faker
+from langchain_core.tools import tool
 
 
 class SchemaValidationError(Exception):
@@ -259,3 +263,50 @@ def _generate_value(fake: Faker, field_type: str, config: Dict[str, Any]) -> Any
     else:
         # Default fallback
         return fake.word()
+
+
+@tool
+def generate_data_tool(schema_yaml: str, num_rows: int, output_file: str = "generated_data.csv") -> str:
+    """
+    Generate synthetic data based on a YAML schema and save to a CSV file.
+
+    Args:
+        schema_yaml: YAML string defining the data structure. Format:
+            - name: column_name
+              type: int|float|date|datetime|category|text|email|phone|name|address|company|product|uuid|bool|currency|percentage
+              config:
+                min: value (for int/float/currency/percentage)
+                max: value (for int/float/currency/percentage)
+                precision: digits (for float)
+                categories: [list] (for category)
+                start_date: "YYYY-MM-DD" (for date/datetime)
+                end_date: "YYYY-MM-DD" (for date/datetime)
+                text_type: first_name|last_name|full_name|street|city|state|zip|country (for name/address)
+        num_rows: Number of rows to generate
+        output_file: Path to save the CSV file (default: generated_data.csv)
+
+    Returns:
+        Path to the generated CSV file
+    """
+    try:
+        # Parse YAML schema
+        schema = yaml.safe_load(schema_yaml)
+
+        # Generate data
+        data = generate_data(schema, num_rows)
+
+        # Convert to DataFrame
+        df = pd.DataFrame(data)
+
+        # Save to CSV
+        output_path = Path(output_file)
+        df.to_csv(output_path, index=False)
+
+        return str(output_path.absolute())
+
+    except yaml.YAMLError as e:
+        raise ValueError(f"Invalid YAML schema: {e}")
+    except SchemaValidationError as e:
+        raise ValueError(f"Schema validation error: {e}")
+    except Exception as e:
+        raise ValueError(f"Error generating data: {e}")
