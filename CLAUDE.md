@@ -25,16 +25,6 @@ A CLI application for generating synthetic sales datasets using LangChain and Op
 
 ## Running the Application
 
-**Run CLI:**
-```bash
-python main.py --help
-```
-
-**Generate dataset:**
-```bash
-python main.py generate
-```
-
 ## Development Notes
 
 - Python >= 3.12 required
