@@ -10,7 +10,6 @@ import pandas as pd
 import yaml
 from faker import Faker
 from langchain_core.tools import tool
-from tools.schema_inference import infer_schema_tool
 from tools.schema_validation import validate_schema, SchemaValidationError
 
 

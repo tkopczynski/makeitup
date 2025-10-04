@@ -1,8 +1,12 @@
 """Schema inference tool using LLM."""
 
+import logging
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage
+import config
+
+logger = logging.getLogger(__name__)
 
 
 @tool
@@ -16,7 +20,7 @@ def infer_schema_tool(description: str) -> str:
     Returns:
         YAML schema string that can be used with generate_data_tool
     """
-    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.3)
+    llm = ChatOpenAI(model=config.LLM_MODEL, temperature=config.SCHEMA_INFERENCE_TEMPERATURE)
 
     prompt = f"""Based on the following description, generate a YAML schema for data generation.
 
@@ -35,7 +39,11 @@ The schema should be in YAML format with the following structure:
     end_date: "YYYY-MM-DD" (for date/datetime)
     text_type: first_name|last_name|full_name|street|city|state|zip|country (for name/address)
 
-Return ONLY the YAML schema, no additional text or explanation."""
+IMPORTANT: Return ONLY the raw YAML schema. Do not include markdown code blocks, backticks, or any formatting. Do not add any explanation before or after the YAML."""
 
     response = llm.invoke([HumanMessage(content=prompt)])
-    return response.content.strip()
+    response_content = response.content.strip()
+
+    logger.info(f"Inferred schema:\n{response_content}")
+
+    return response_content

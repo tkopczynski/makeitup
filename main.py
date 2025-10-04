@@ -2,71 +2,77 @@
 
 import click
 from dotenv import load_dotenv
-from langchain_openai import ChatOpenAI
-from langchain_core.messages import HumanMessage
-import pandas as pd
-from io import StringIO
-import config
+from langchain_core.runnables import RunnableLambda
+from tools.schema_inference import infer_schema_tool
+from tools.generator import generate_data_tool
+from logging_config import setup_logging
 
 load_dotenv()
+setup_logging()
 
 
-def create_llm():
-    """Create and configure the LLM."""
-    return ChatOpenAI(model=config.LLM_MODEL, temperature=config.LLM_TEMPERATURE)
+def create_generation_chain():
+    """Create LCEL chain that infers schema and generates data."""
+
+    def infer_schema(input_dict):
+        """Wrapper to call infer_schema_tool."""
+        description = input_dict["description"]
+        schema_yaml = infer_schema_tool.invoke({"description": description})
+        return {
+            "schema_yaml": schema_yaml,
+            "num_rows": input_dict["num_rows"],
+            "output_file": input_dict["output_file"]
+        }
+
+    def generate_data(input_dict):
+        """Wrapper to call generate_data_tool."""
+        return generate_data_tool.invoke(input_dict)
+
+    # Create LCEL chain using | operator
+    chain = RunnableLambda(infer_schema) | RunnableLambda(generate_data)
+
+    return chain
 
 
-def build_prompt():
-    """Build the prompt for sales data generation."""
-    return """Generate 5 rows of sales data in pipe-separated format with the following columns:
-- store_id: A unique store identifier (e.g., S001, S002, etc.)
-- date: A date in YYYY-MM-DD format
-- weekly_sales: Weekly sales amount in dollars (realistic values between 10000 and 100000)
-
-Return ONLY the pipe-separated data (|) with headers, no additional text or explanation."""
-
-
-def generate_data(llm, prompt):
-    """Generate data using the LLM."""
-    response = llm.invoke([HumanMessage(content=prompt)])
-    return response.content
-
-
-def parse_pipe_separated(data):
-    """Parse pipe-separated data into a DataFrame."""
-    df = pd.read_csv(StringIO(data), sep='|', skipinitialspace=True)
-    df = df.dropna(axis=1, how='all')  # Remove empty columns
-    df.columns = df.columns.str.strip()  # Strip whitespace from column names
-    return df
-
-
-def save_to_csv(df, output_file):
-    """Save DataFrame to CSV file."""
-    df.to_csv(output_file, index=False)
-
-
-@click.group()
+@click.command()
+@click.option(
+    '--description',
+    '-d',
+    prompt='Dataset description',
+    help='Natural language description of the dataset to generate'
+)
+@click.option(
+    '--rows',
+    '-n',
+    default=100,
+    help='Number of rows to generate (default: 100)'
+)
+@click.option(
+    '--output',
+    '-o',
+    default="output.csv",
+    help='Output CSV file path (default: output.csv)'
+)
 @click.version_option(version="0.1.0")
-def main():
-    """Dataset generation CLI with LangChain and OpenAI."""
-    pass
+def main(description, rows, output):
+    """Generate synthetic datasets using LangChain and OpenAI."""
 
+    output_file = output
 
-@main.command()
-def generate():
-    """Generate dataset."""
-    click.echo("Generating sales data...")
+    click.echo(f"Generating {rows} rows of data...")
+    click.echo(f"Description: {description}\n")
 
-    llm = create_llm()
-    prompt = build_prompt()
-    data = generate_data(llm, prompt)
+    # Create and run the LCEL chain
+    chain = create_generation_chain()
 
-    click.echo("\n" + data)
+    file_path = chain.invoke({
+        "description": description,
+        "num_rows": rows,
+        "output_file": output_file
+    })
 
-    df = parse_pipe_separated(data)
-
-    save_to_csv(df, config.OUTPUT_FILE)
-    click.echo(f"\nSaved to {config.OUTPUT_FILE}")
+    click.echo(f"\n✓ Data generated successfully!")
+    click.echo(f"Saved to: {file_path}")
 
 
 if __name__ == "__main__":
