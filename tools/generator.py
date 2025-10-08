@@ -4,16 +4,17 @@ import random
 import uuid
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import pandas as pd
 import yaml
 from faker import Faker
 from langchain_core.tools import tool
-from tools.schema_validation import validate_schema, SchemaValidationError
+
+from tools.schema_validation import SchemaValidationError, validate_schema
 
 
-def generate_data(schema: List[Dict[str, Any]], num_rows: int) -> List[Dict[str, Any]]:
+def generate_data(schema: list[dict[str, Any]], num_rows: int) -> list[dict[str, Any]]:
     """
     Generate synthetic data based on a schema.
 
@@ -23,7 +24,8 @@ def generate_data(schema: List[Dict[str, Any]], num_rows: int) -> List[Dict[str,
                [
                    {
                        "name": "column_name",
-                       "type": "int|float|date|datetime|category|text|email|phone|name|address|company|product|uuid|bool|currency|percentage",
+                       "type": "int|float|date|datetime|category|text|email|phone|name|address|
+                                company|product|uuid|bool|currency|percentage",
                        "config": {
                            "min": value (for int/float/currency/percentage),
                            "max": value (for int/float/currency/percentage),
@@ -31,7 +33,8 @@ def generate_data(schema: List[Dict[str, Any]], num_rows: int) -> List[Dict[str,
                            "categories": [list] (for category),
                            "start_date": date (for date/datetime),
                            "end_date": date (for date/datetime),
-                           "text_type": "first_name|last_name|full_name|street|city|state|zip|country" (for name/address)
+                           "text_type": "first_name|last_name|full_name|street|city|state|
+                                         zip|country" (for name/address)
                        }
                    }
                ]
@@ -60,7 +63,7 @@ def generate_data(schema: List[Dict[str, Any]], num_rows: int) -> List[Dict[str,
     return data
 
 
-def _generate_value(fake: Faker, field_type: str, config: Dict[str, Any]) -> Any:
+def _generate_value(fake: Faker, field_type: str, config: dict[str, Any]) -> Any:
     """
     Generate a single value based on the field type and configuration.
 
@@ -174,14 +177,17 @@ def _generate_value(fake: Faker, field_type: str, config: Dict[str, Any]) -> Any
 
 
 @tool
-def generate_data_tool(schema_yaml: str, num_rows: int, output_file: str = "generated_data.csv") -> str:
+def generate_data_tool(
+    schema_yaml: str, num_rows: int, output_file: str = "generated_data.csv"
+) -> str:
     """
     Generate synthetic data based on a YAML schema and save to a CSV file.
 
     Args:
         schema_yaml: YAML string defining the data structure. Format:
             - name: column_name
-              type: int|float|date|datetime|category|text|email|phone|name|address|company|product|uuid|bool|currency|percentage
+              type: int|float|date|datetime|category|text|email|phone|name|address|
+                    company|product|uuid|bool|currency|percentage
               config:
                 min: value (for int/float/currency/percentage)
                 max: value (for int/float/currency/percentage)
@@ -189,7 +195,8 @@ def generate_data_tool(schema_yaml: str, num_rows: int, output_file: str = "gene
                 categories: [list] (for category)
                 start_date: "YYYY-MM-DD" (for date/datetime)
                 end_date: "YYYY-MM-DD" (for date/datetime)
-                text_type: first_name|last_name|full_name|street|city|state|zip|country (for name/address)
+                text_type: first_name|last_name|full_name|street|city|state|zip|country
+                           (for name/address)
         num_rows: Number of rows to generate
         output_file: Path to save the CSV file (default: generated_data.csv)
 
@@ -213,8 +220,8 @@ def generate_data_tool(schema_yaml: str, num_rows: int, output_file: str = "gene
         return str(output_path.absolute())
 
     except yaml.YAMLError as e:
-        raise ValueError(f"Invalid YAML schema: {e}")
+        raise ValueError(f"Invalid YAML schema: {e}") from e
     except SchemaValidationError as e:
-        raise ValueError(f"Schema validation error: {e}")
+        raise ValueError(f"Schema validation error: {e}") from e
     except Exception as e:
-        raise ValueError(f"Error generating data: {e}")
+        raise ValueError(f"Error generating data: {e}") from e
