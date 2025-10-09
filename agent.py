@@ -2,9 +2,8 @@
 
 import logging
 
-from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
-from pydantic import BaseModel, Field
+from langgraph.prebuilt import create_react_agent
 
 import config
 from tools.generator import generate_data_tool
@@ -13,89 +12,60 @@ from tools.schema_inference import infer_schema_tool
 logger = logging.getLogger(__name__)
 
 
-class DataGenerationRequest(BaseModel):
-    """Structured representation of a data generation request."""
-
-    description: str = Field(
-        description="Description of what kind of data to generate, including field names"
-    )
-    num_rows: int = Field(
-        default=100, description="Number of rows to generate", ge=1, le=100000
-    )
-    output_file: str = Field(
-        default="generated_data.csv", description="Path to the output CSV file"
-    )
-
-
-def extract_request_params(user_request: str) -> DataGenerationRequest:
+def create_data_generation_agent():
     """
-    Extract parameters from user request using structured output.
-
-    Args:
-        user_request: Natural language request
+    Create a LangGraph ReAct agent for data generation that can handle multiple files.
 
     Returns:
-        DataGenerationRequest with extracted parameters
+        Compiled LangGraph agent configured with data generation tools
     """
     llm = ChatOpenAI(model=config.LLM_MODEL, temperature=0)
+    tools = [infer_schema_tool, generate_data_tool]
 
-    # Use structured output with Pydantic model
-    structured_llm = llm.with_structured_output(DataGenerationRequest)
+    system_message = """You are a data generation assistant. \
+You help users generate synthetic datasets.
 
-    extraction_prompt = ChatPromptTemplate.from_template(
-        """Extract the data generation parameters from the user's request.
+When the user requests data generation:
+1. Identify how many datasets/files they want to generate
+2. For EACH dataset:
+   a. Use infer_schema_tool with a description of the data
+   b. Use generate_data_tool with the schema, number of rows, and output file
+3. Continue until all datasets are generated
 
-User request: {request}
+IMPORTANT INSTRUCTIONS:
+- If num_rows is not specified for a dataset, use 100 as default
+- If output file is not specified, use "generated_data.csv" for single file or \
+descriptive names for multiple files
+- For generate_data_tool, the input MUST be valid JSON with keys: \
+schema_yaml, num_rows, output_file
+- Use the EXACT schema_yaml from infer_schema_tool output (as a string)"""
 
-Instructions:
-- description: Extract what kind of data to generate, including specific field names mentioned
-- num_rows: Extract how many rows (if not specified, use 100)
-- output_file: Extract the output filename (if not specified, use "generated_data.csv")
-"""
-    )
+    agent = create_react_agent(llm, tools, prompt=system_message)
 
-    chain = extraction_prompt | structured_llm
-    result = chain.invoke({"request": user_request})
-
-    logger.info(f"Extracted params: {result}")
-    return result
+    return agent
 
 
 def run_agent(user_request: str) -> str:
     """
-    Run the data generation process with a user request.
-
-    This uses a simple chain approach with structured outputs instead of
-    a full agent to avoid parsing issues.
+    Run the LangGraph ReAct agent with a user request.
 
     Args:
         user_request: Natural language request for data generation
 
     Returns:
-        Success message with file path
+        Agent's response
     """
+    agent = create_data_generation_agent()
+
     try:
-        # Step 1: Extract parameters using structured output
         logger.info(f"Processing request: {user_request}")
-        params = extract_request_params(user_request)
+        result = agent.invoke({"messages": [("user", user_request)]})
 
-        # Step 2: Infer schema
-        logger.info(f"Inferring schema for: {params.description}")
-        schema_yaml = infer_schema_tool.invoke({"description": params.description})
-        logger.info(f"Inferred schema:\n{schema_yaml}")
+        # Extract the final message from the agent
+        messages = result["messages"]
+        final_message = messages[-1]
 
-        # Step 3: Generate data
-        logger.info(f"Generating {params.num_rows} rows to {params.output_file}")
-        file_path = generate_data_tool.invoke(
-            {
-                "schema_yaml": schema_yaml,
-                "num_rows": params.num_rows,
-                "output_file": params.output_file,
-            }
-        )
-
-        return f"Data generated successfully! Saved to: {file_path}"
-
+        return final_message.content
     except Exception as e:
-        logger.error(f"Data generation failed: {e}")
+        logger.error(f"Agent execution failed: {e}")
         raise

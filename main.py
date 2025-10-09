@@ -18,7 +18,8 @@ def main(request):
     Generate synthetic datasets using natural language requests.
 
     Examples:
-        python main.py "Create 500 rows of customer data with names, emails, and phone numbers, save to customers.csv"
+        python main.py "Create 500 rows of customer data with names, emails, \
+and phone numbers, save to customers.csv"
         python main.py "Generate 1000 rows of sales data"
     """
     user_request = " ".join(request)
@@ -29,7 +30,7 @@ def main(request):
         click.echo(f"\n{result}")
     except Exception as e:
         click.echo(f"\nError: {e}", err=True)
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 if __name__ == "__main__":

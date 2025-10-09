@@ -11,6 +11,7 @@ requires-python = ">=3.12"
 dependencies = [
     "langchain>=0.1.0",
     "langchain-openai>=0.0.5",
+    "langgraph>=0.2.0",
     "openai>=1.0.0",
     "python-dotenv>=1.0.0",
     "click>=8.1.0",
