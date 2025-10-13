@@ -12,7 +12,7 @@ import yaml
 from faker import Faker
 from langchain_core.tools import tool
 
-from tools.schema_validation import SchemaValidationError, validate_schema
+from data_generation.tools.schema_validation import SchemaValidationError, validate_schema
 
 logger = logging.getLogger(__name__)
 

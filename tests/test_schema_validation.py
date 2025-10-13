@@ -2,7 +2,7 @@
 
 import pytest
 
-from tools.schema_validation import SchemaValidationError, validate_schema
+from data_generation.tools.schema_validation import SchemaValidationError, validate_schema
 
 
 class TestValidateSchema:

@@ -4,8 +4,8 @@ from datetime import datetime
 
 import pytest
 
-from tools.generator import generate_data
-from tools.schema_validation import SchemaValidationError
+from data_generation.core.generator import generate_data
+from data_generation.tools.schema_validation import SchemaValidationError
 
 
 class TestGenerateData:

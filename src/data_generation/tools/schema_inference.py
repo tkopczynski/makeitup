@@ -7,7 +7,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
 
-import config
+from data_generation import config
 
 logger = logging.getLogger(__name__)
 

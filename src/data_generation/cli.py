@@ -3,24 +3,25 @@
 import click
 from dotenv import load_dotenv
 
-from agent import run_agent
-from logging_config import setup_logging
+from data_generation.core.agent import run_agent
+from data_generation.utils.logging import setup_logging
 
 load_dotenv()
 setup_logging()
 
 
 @click.command()
-@click.argument('request', nargs=-1, required=True)
+@click.argument("request", nargs=-1, required=True)
 @click.version_option(version="0.1.0")
 def main(request):
     """
     Generate synthetic datasets using natural language requests.
 
     Examples:
-        python main.py "Create 500 rows of customer data with names, emails, \
-and phone numbers, save to customers.csv"
-        python main.py "Generate 1000 rows of sales data"
+        data-generation "Create 500 rows of customer data with names, emails,
+        and phone numbers, save to customers.csv"
+
+        data-generation "Generate 1000 rows of sales data"
     """
     user_request = " ".join(request)
     click.echo(f"Processing request: {user_request}\n")
