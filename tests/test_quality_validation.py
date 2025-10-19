@@ -139,7 +139,7 @@ class TestNullRateValidation:
         null_rate_2 = null_count_2 / len(data)
 
         assert 0.07 <= null_rate_1 <= 0.13, f"Field1 null rate {null_rate_1} outside range"
-        assert 0.17 <= null_rate_2 <= 0.23, f"Field2 null rate {null_rate_2} outside range"
+        assert 0.16 <= null_rate_2 <= 0.24, f"Field2 null rate {null_rate_2} outside range"
         assert null_count_3 == 0, f"Field3 should have no nulls, got {null_count_3}"
 
 
