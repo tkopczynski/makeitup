@@ -7,7 +7,7 @@ import pandas as pd
 import yaml
 from langchain_core.tools import tool
 
-from data_generation.core.generator import generate_data
+from data_generation.core.generator import generate_data_with_seed
 from data_generation.tools.schema_validation import SchemaValidationError
 
 logger = logging.getLogger(__name__)
@@ -57,7 +57,7 @@ def generate_data_tool(
 
         # Generate data with reproducibility
         logger.info(f"Generating {num_rows} rows of data...")
-        data, seed_used = generate_data(schema, num_rows, seed)
+        data, seed_used = generate_data_with_seed(schema, num_rows, seed)
 
         # Convert to DataFrame
         df = pd.DataFrame(data)

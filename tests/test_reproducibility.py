@@ -4,7 +4,7 @@ import pandas as pd
 import pytest
 
 from data_generation.core.generator import (
-    generate_data,
+    generate_data_with_seed,
     generate_reproducibility_code,
 )
 from data_generation.core.quality import QualityConfig
@@ -23,8 +23,8 @@ def test_same_seed_produces_identical_data():
     num_rows = 50
 
     # Generate data twice with same seed
-    data1, seed1 = generate_data(schema, num_rows, seed)
-    data2, seed2 = generate_data(schema, num_rows, seed)
+    data1, seed1 = generate_data_with_seed(schema, num_rows, seed)
+    data2, seed2 = generate_data_with_seed(schema, num_rows, seed)
 
     # Convert to DataFrames for comparison
     df1 = pd.DataFrame(data1)
@@ -48,8 +48,8 @@ def test_different_seeds_produce_different_data():
     num_rows = 50
 
     # Generate with different seeds
-    data1, seed1 = generate_data(schema, num_rows, 111111)
-    data2, seed2 = generate_data(schema, num_rows, 999999)
+    data1, seed1 = generate_data_with_seed(schema, num_rows, 111111)
+    data2, seed2 = generate_data_with_seed(schema, num_rows, 999999)
 
     df1 = pd.DataFrame(data1)
     df2 = pd.DataFrame(data2)
@@ -70,7 +70,7 @@ def test_none_seed_generates_reproducibility_code():
     """Test that None seed auto-generates a reproducibility code."""
     schema = [{"name": "id", "type": "int", "config": {"min": 1, "max": 100}}]
 
-    data, seed = generate_data(schema, 10, None)
+    data, seed = generate_data_with_seed(schema, 10, None)
 
     # Verify a seed was generated
     assert seed is not None
@@ -82,7 +82,7 @@ def test_seed_returned_in_tuple():
     """Test that generate_data returns (data, seed) tuple."""
     schema = [{"name": "value", "type": "int"}]
 
-    result = generate_data(schema, 5, 555555)
+    result = generate_data_with_seed(schema, 5, 555555)
 
     # Verify tuple structure
     assert isinstance(result, tuple)
@@ -122,8 +122,8 @@ def test_seed_with_quality_degradation():
     num_rows = 100
 
     # Generate twice with same seed
-    data1, _ = generate_data(schema, num_rows, seed)
-    data2, _ = generate_data(schema, num_rows, seed)
+    data1, _ = generate_data_with_seed(schema, num_rows, seed)
+    data2, _ = generate_data_with_seed(schema, num_rows, seed)
 
     df1 = pd.DataFrame(data1)
     df2 = pd.DataFrame(data2)
@@ -162,8 +162,8 @@ def test_seed_with_target_generation():
     num_rows = 50
 
     # Generate twice with same seed
-    data1, _ = generate_data(schema, num_rows, seed)
-    data2, _ = generate_data(schema, num_rows, seed)
+    data1, _ = generate_data_with_seed(schema, num_rows, seed)
+    data2, _ = generate_data_with_seed(schema, num_rows, seed)
 
     df1 = pd.DataFrame(data1)
     df2 = pd.DataFrame(data2)
@@ -191,8 +191,8 @@ def test_seed_with_categories():
     num_rows = 100
 
     # Generate twice with same seed
-    data1, _ = generate_data(schema, num_rows, seed)
-    data2, _ = generate_data(schema, num_rows, seed)
+    data1, _ = generate_data_with_seed(schema, num_rows, seed)
+    data2, _ = generate_data_with_seed(schema, num_rows, seed)
 
     df1 = pd.DataFrame(data1)
     df2 = pd.DataFrame(data2)
@@ -217,7 +217,7 @@ def test_backward_compatibility_no_seed():
     ]
 
     # Call without seed parameter
-    data, seed = generate_data(schema, 10)
+    data, seed = generate_data_with_seed(schema, 10)
 
     # Should work and generate a seed
     assert len(data) == 10
@@ -229,8 +229,8 @@ def test_seed_zero():
     """Test that seed=0 works correctly."""
     schema = [{"name": "value", "type": "int", "config": {"min": 1, "max": 100}}]
 
-    data1, seed1 = generate_data(schema, 20, 0)
-    data2, seed2 = generate_data(schema, 20, 0)
+    data1, seed1 = generate_data_with_seed(schema, 20, 0)
+    data2, seed2 = generate_data_with_seed(schema, 20, 0)
 
     # Seed 0 should produce identical data
     df1 = pd.DataFrame(data1)
@@ -243,8 +243,8 @@ def test_very_large_seed():
     schema = [{"name": "value", "type": "int"}]
 
     large_seed = 999999
-    data1, seed1 = generate_data(schema, 10, large_seed)
-    data2, seed2 = generate_data(schema, 10, large_seed)
+    data1, seed1 = generate_data_with_seed(schema, 10, large_seed)
+    data2, seed2 = generate_data_with_seed(schema, 10, large_seed)
 
     assert seed1 == large_seed
     assert seed2 == large_seed
@@ -261,8 +261,8 @@ def test_seed_with_bool_type():
     seed = 444444
     num_rows = 100
 
-    data1, _ = generate_data(schema, num_rows, seed)
-    data2, _ = generate_data(schema, num_rows, seed)
+    data1, _ = generate_data_with_seed(schema, num_rows, seed)
+    data2, _ = generate_data_with_seed(schema, num_rows, seed)
 
     df1 = pd.DataFrame(data1)
     df2 = pd.DataFrame(data2)
@@ -288,8 +288,8 @@ def test_seed_with_date_types():
     seed = 666666
     num_rows = 50
 
-    data1, _ = generate_data(schema, num_rows, seed)
-    data2, _ = generate_data(schema, num_rows, seed)
+    data1, _ = generate_data_with_seed(schema, num_rows, seed)
+    data2, _ = generate_data_with_seed(schema, num_rows, seed)
 
     df1 = pd.DataFrame(data1)
     df2 = pd.DataFrame(data2)
@@ -309,8 +309,8 @@ def test_seed_with_text_types():
     seed = 222222
     num_rows = 30
 
-    data1, _ = generate_data(schema, num_rows, seed)
-    data2, _ = generate_data(schema, num_rows, seed)
+    data1, _ = generate_data_with_seed(schema, num_rows, seed)
+    data2, _ = generate_data_with_seed(schema, num_rows, seed)
 
     df1 = pd.DataFrame(data1)
     df2 = pd.DataFrame(data2)
@@ -326,8 +326,8 @@ def test_seed_with_uuid():
     seed = 151515
     num_rows = 20
 
-    data1, _ = generate_data(schema, num_rows, seed)
-    data2, _ = generate_data(schema, num_rows, seed)
+    data1, _ = generate_data_with_seed(schema, num_rows, seed)
+    data2, _ = generate_data_with_seed(schema, num_rows, seed)
 
     df1 = pd.DataFrame(data1)
     df2 = pd.DataFrame(data2)
@@ -349,8 +349,8 @@ def test_seed_with_percentage_type():
     seed = 505050
     num_rows = 50
 
-    data1, _ = generate_data(schema, num_rows, seed)
-    data2, _ = generate_data(schema, num_rows, seed)
+    data1, _ = generate_data_with_seed(schema, num_rows, seed)
+    data2, _ = generate_data_with_seed(schema, num_rows, seed)
 
     df1 = pd.DataFrame(data1)
     df2 = pd.DataFrame(data2)
@@ -381,8 +381,8 @@ def test_seed_with_probabilistic_target():
     seed = 121212
     num_rows = 50
 
-    data1, _ = generate_data(schema, num_rows, seed)
-    data2, _ = generate_data(schema, num_rows, seed)
+    data1, _ = generate_data_with_seed(schema, num_rows, seed)
+    data2, _ = generate_data_with_seed(schema, num_rows, seed)
 
     df1 = pd.DataFrame(data1)
     df2 = pd.DataFrame(data2)
@@ -415,8 +415,8 @@ def test_complex_schema_reproducibility():
     seed = 987654
     num_rows = 100
 
-    data1, _ = generate_data(schema, num_rows, seed)
-    data2, _ = generate_data(schema, num_rows, seed)
+    data1, _ = generate_data_with_seed(schema, num_rows, seed)
+    data2, _ = generate_data_with_seed(schema, num_rows, seed)
 
     df1 = pd.DataFrame(data1)
     df2 = pd.DataFrame(data2)

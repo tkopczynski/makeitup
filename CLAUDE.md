@@ -225,21 +225,28 @@ $ data-generation "500 transactions, flag fraud if amount > 5000" --seed 123123
 ### Programmatic Usage
 
 ```python
-from data_generation.core.generator import generate_data
+from data_generation.core.generator import generate_data, generate_data_with_seed
 
 schema = [
     {"name": "id", "type": "int", "config": {"min": 1, "max": 1000}},
     {"name": "name", "type": "name"},
 ]
 
-# Random generation
-data1, seed1 = generate_data(schema, 100)
+# Standard generation (backward compatible - returns only data)
+data = generate_data(schema, 100, seed=123456)
+
+# Generation with seed tracking (returns data + seed used)
+data1, seed1 = generate_data_with_seed(schema, 100)
 print(f"Generated with code: {seed1}")  # e.g., 456789
 
 # Reproducible generation
-data2, seed2 = generate_data(schema, 100, seed=456789)
+data2, seed2 = generate_data_with_seed(schema, 100, seed=456789)
 # data2 is identical to data1 if seed1 was 456789
 ```
+
+**API Functions:**
+- `generate_data(schema, num_rows, seed=None)` - Returns `list[dict]` (backward compatible)
+- `generate_data_with_seed(schema, num_rows, seed=None)` - Returns `tuple[list[dict], int]` (for seed tracking)
 
 ### Technical Details
 

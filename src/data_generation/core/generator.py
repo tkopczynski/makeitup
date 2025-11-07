@@ -37,48 +37,19 @@ def _set_seed(seed: int) -> None:
     Faker.seed(seed)
 
 
-def generate_data(
+def _generate_data_internal(
     schema: list[dict[str, Any]], num_rows: int, seed: int | None = None
 ) -> tuple[list[dict[str, Any]], int]:
     """
-    Generate synthetic data based on a schema.
+    Internal function to generate synthetic data with seed tracking.
 
     Args:
         schema: List of dictionaries defining the structure and types of data to generate.
-               Expected format:
-               [
-                   {
-                       "name": "column_name",
-                       "type": "int|float|date|datetime|category|text|email|phone|name|address|
-                                company|product|uuid|bool|currency|percentage|reference",
-                       "config": {
-                           "min": value (for int/float/currency/percentage),
-                           "max": value (for int/float/currency/percentage),
-                           "precision": digits (for float),
-                           "categories": [list] (for category),
-                           "start_date": date (for date/datetime),
-                           "end_date": date (for date/datetime),
-                           "text_type": "first_name|last_name|full_name|street|city|state|
-                                         zip|country" (for name/address),
-                           "reference_file": path (for reference),
-                           "reference_column": column_name (for reference),
-                           "quality_config": {
-                               "null_rate": 0.0-1.0,
-                               "duplicate_rate": 0.0-1.0,
-                               "similar_rate": 0.0-1.0,
-                               "outlier_rate": 0.0-1.0,
-                               "invalid_format_rate": 0.0-1.0
-                           }
-                       }
-                   }
-               ]
         num_rows: Number of rows to generate
         seed: Reproducibility code (None for random generation)
 
     Returns:
         Tuple of (generated_data, seed_used)
-        - generated_data: List of dictionaries containing the generated data
-        - seed_used: The actual reproducibility code used (generated if None provided)
 
     Raises:
         SchemaValidationError: If schema is invalid
@@ -165,6 +136,79 @@ def generate_data(
         data.append(row)
 
     return data, seed
+
+
+def generate_data(
+    schema: list[dict[str, Any]], num_rows: int, seed: int | None = None
+) -> list[dict[str, Any]]:
+    """
+    Generate synthetic data based on a schema.
+
+    Args:
+        schema: List of dictionaries defining the structure and types of data to generate.
+               Expected format:
+               [
+                   {
+                       "name": "column_name",
+                       "type": "int|float|date|datetime|category|text|email|phone|name|address|
+                                company|product|uuid|bool|currency|percentage|reference",
+                       "config": {
+                           "min": value (for int/float/currency/percentage),
+                           "max": value (for int/float/currency/percentage),
+                           "precision": digits (for float),
+                           "categories": [list] (for category),
+                           "start_date": date (for date/datetime),
+                           "end_date": date (for date/datetime),
+                           "text_type": "first_name|last_name|full_name|street|city|state|
+                                         zip|country" (for name/address),
+                           "reference_file": path (for reference),
+                           "reference_column": column_name (for reference),
+                           "quality_config": {
+                               "null_rate": 0.0-1.0,
+                               "duplicate_rate": 0.0-1.0,
+                               "similar_rate": 0.0-1.0,
+                               "outlier_rate": 0.0-1.0,
+                               "invalid_format_rate": 0.0-1.0
+                           }
+                       }
+                   }
+               ]
+        num_rows: Number of rows to generate
+        seed: Reproducibility code (None for random generation)
+
+    Returns:
+        List of dictionaries containing the generated data
+
+    Raises:
+        SchemaValidationError: If schema is invalid
+    """
+    data, _ = _generate_data_internal(schema, num_rows, seed)
+    return data
+
+
+def generate_data_with_seed(
+    schema: list[dict[str, Any]], num_rows: int, seed: int | None = None
+) -> tuple[list[dict[str, Any]], int]:
+    """
+    Generate synthetic data based on a schema with seed tracking.
+
+    This function is useful when you need to know which reproducibility code
+    was used for generation (e.g., for displaying to users or logging).
+
+    Args:
+        schema: List of dictionaries defining the structure and types of data to generate.
+        num_rows: Number of rows to generate
+        seed: Reproducibility code (None for random generation)
+
+    Returns:
+        Tuple of (generated_data, seed_used)
+        - generated_data: List of dictionaries containing the generated data
+        - seed_used: The actual reproducibility code used (generated if None provided)
+
+    Raises:
+        SchemaValidationError: If schema is invalid
+    """
+    return _generate_data_internal(schema, num_rows, seed)
 
 
 def _generate_value(

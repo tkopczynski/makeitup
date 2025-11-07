@@ -26,7 +26,7 @@ class TestClassBalanceValidation:
             {"name": "feature2", "type": "int", "config": {"min": 1, "max": 100}},
             {"name": "is_positive", "type": "bool"},
         ]
-        data, _ = generate_data(schema, 1000)
+        data = generate_data(schema, 1000)
 
         # Count positive class
         positive_count = sum(1 for row in data if row["is_positive"])
@@ -48,7 +48,7 @@ class TestClassBalanceValidation:
                 "config": {"categories": categories},
             },
         ]
-        data, _ = generate_data(schema, 1000)
+        data = generate_data(schema, 1000)
 
         # Count each class
         class_counts = Counter(row["target_class"] for row in data)
@@ -69,7 +69,7 @@ class TestClassBalanceValidation:
             {"name": "feature2", "type": "int"},
             {"name": "is_fraud", "type": "bool"},
         ]
-        data, _ = generate_data(schema, 1000)
+        data = generate_data(schema, 1000)
 
         # Count minority class (whichever is smaller)
         positive_count = sum(1 for row in data if row["is_fraud"])
@@ -88,7 +88,7 @@ class TestClassBalanceValidation:
             {"name": "feature", "type": "float"},
             {"name": "target", "type": "category", "config": {"categories": categories}},
         ]
-        data, _ = generate_data(schema, 300)
+        data = generate_data(schema, 300)
 
         # Count each class
         class_counts = Counter(row["target"] for row in data)
@@ -112,7 +112,7 @@ class TestFeatureCorrelation:
             {"name": "feature2", "type": "int", "config": {"min": 1, "max": 50}},
             {"name": "target", "type": "bool"},
         ]
-        data, _ = generate_data(schema, 500)
+        data = generate_data(schema, 500)
 
         # Extract feature values
         feature1_vals = [row["feature1"] for row in data]
@@ -137,7 +137,7 @@ class TestFeatureCorrelation:
             {"name": "feature2", "type": "int", "config": {"min": 1, "max": 100}},
             {"name": "target", "type": "bool"},
         ]
-        data, _ = generate_data(schema, 500)
+        data = generate_data(schema, 500)
 
         # Check that no single feature perfectly predicts target
         # Group by target and check feature distributions overlap
@@ -163,7 +163,7 @@ class TestFeatureCorrelation:
             {"name": "feature2", "type": "float", "config": {"min": 0.0, "max": 100.0}},
             {"name": "feature3", "type": "float", "config": {"min": 0.0, "max": 100.0}},
         ]
-        data, _ = generate_data(schema, 100)
+        data = generate_data(schema, 100)
 
         # Extract features
         f1 = [row["feature1"] for row in data]
@@ -185,7 +185,7 @@ class TestFeatureCorrelation:
             },
             {"name": "target", "type": "bool"},
         ]
-        data, _ = generate_data(schema, 500)
+        data = generate_data(schema, 500)
 
         categories = [row["category"] for row in data]
         unique_categories = set(categories)
@@ -205,7 +205,7 @@ class TestDataLeakageDetection:
             {"name": "feature", "type": "bool"},
             {"name": "target", "type": "bool"},
         ]
-        data, _ = generate_data(schema, 200)
+        data = generate_data(schema, 200)
 
         # Extract values
         features = [row["feature"] for row in data]
@@ -221,7 +221,7 @@ class TestDataLeakageDetection:
             {"name": "feature", "type": "float"},
             {"name": "target", "type": "bool"},
         ]
-        data, _ = generate_data(schema, 500)
+        data = generate_data(schema, 500)
 
         ids = [row["id"] for row in data]
 
@@ -239,7 +239,7 @@ class TestDataSplittingValidation:
             {"name": "feature2", "type": "int"},
             {"name": "target", "type": "bool"},
         ]
-        data, _ = generate_data(schema, 100)
+        data = generate_data(schema, 100)
 
         # For ML, minimum recommended is ~100 samples
         assert len(data) >= 100, f"Only {len(data)} samples, recommend at least 100"
@@ -259,7 +259,7 @@ class TestDataSplittingValidation:
             {"name": "feature2", "type": "float", "config": {"min": 0.0, "max": 100.0}},
             {"name": "target", "type": "bool"},
         ]
-        data, _ = generate_data(schema, 500)
+        data = generate_data(schema, 500)
 
         # Convert rows to tuples for hashing
         row_tuples = [
@@ -297,7 +297,7 @@ class TestDataSplittingValidation:
                 },
                 {"name": "amount", "type": "currency"},
             ]
-            data, _ = generate_data(schema, 100)
+            data = generate_data(schema, 100)
 
             # All user_ids should be valid references
             user_ids = [str(row["user_id"]) for row in data]
@@ -326,7 +326,7 @@ class TestFeatureQuality:
             },
             {"name": "target", "type": "bool"},
         ]
-        data, _ = generate_data(schema, 500)
+        data = generate_data(schema, 500)
 
         # Count nulls per feature
         feature1_nulls = sum(1 for row in data if row["feature1"] is None)
@@ -360,7 +360,7 @@ class TestFeatureQuality:
             },
             {"name": "target", "type": "bool"},
         ]
-        data, _ = generate_data(schema, 1000)
+        data = generate_data(schema, 1000)
 
         # Calculate overall missing rate
         total_values = len(data) * 3  # 3 features with quality config
@@ -388,7 +388,7 @@ class TestFeatureQuality:
             {"name": "boolean_feature", "type": "bool"},
             {"name": "target", "type": "bool"},
         ]
-        data, _ = generate_data(schema, 100)
+        data = generate_data(schema, 100)
 
         # Verify we have different data types
         sample = data[0]
@@ -415,7 +415,7 @@ class TestMLReadinessScenarios:
             },
             {"name": "is_customer", "type": "bool"},
         ]
-        data, _ = generate_data(schema, 500)
+        data = generate_data(schema, 500)
 
         # Validate dataset structure
         assert len(data) == 500
@@ -442,7 +442,7 @@ class TestMLReadinessScenarios:
             {"name": "age_years", "type": "int", "config": {"min": 0, "max": 100}},
             {"name": "price", "type": "currency", "config": {"min": 100000, "max": 1000000}},
         ]
-        data, _ = generate_data(schema, 300)
+        data = generate_data(schema, 300)
 
         # Validate dataset
         assert len(data) == 300
@@ -470,7 +470,7 @@ class TestMLReadinessScenarios:
                 "config": {"categories": ["class_0", "class_1", "class_2", "class_3"]},
             },
         ]
-        data, _ = generate_data(schema, 400)
+        data = generate_data(schema, 400)
 
         # Check all classes present
         classes = [row["class"] for row in data]

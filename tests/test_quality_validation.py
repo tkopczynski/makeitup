@@ -29,7 +29,7 @@ class TestQualityConfigValidation:
             }
         ]
         # Should not raise
-        data, _ = generate_data(schema, 10)
+        data = generate_data(schema, 10)
         assert len(data) == 10
 
     def test_quality_config_rate_out_of_range(self):
@@ -81,7 +81,7 @@ class TestNullRateValidation:
         schema = [
             {"name": "email", "type": "email", "config": {"quality_config": {"null_rate": 0.1}}}
         ]
-        data, _ = generate_data(schema, 1000)
+        data = generate_data(schema, 1000)
 
         null_count = sum(1 for row in data if row["email"] is None)
         null_rate = null_count / len(data)
@@ -94,7 +94,7 @@ class TestNullRateValidation:
         schema = [
             {"name": "value", "type": "int", "config": {"quality_config": {"null_rate": 0.25}}}
         ]
-        data, _ = generate_data(schema, 1000)
+        data = generate_data(schema, 1000)
 
         null_count = sum(1 for row in data if row["value"] is None)
         null_rate = null_count / len(data)
@@ -107,7 +107,7 @@ class TestNullRateValidation:
         schema = [
             {"name": "email", "type": "email", "config": {"quality_config": {"null_rate": 0.0}}}
         ]
-        data, _ = generate_data(schema, 500)
+        data = generate_data(schema, 500)
 
         null_count = sum(1 for row in data if row["email"] is None)
         assert null_count == 0, f"Expected no nulls, got {null_count}"
@@ -117,7 +117,7 @@ class TestNullRateValidation:
         schema = [
             {"name": "email", "type": "email", "config": {"quality_config": {"null_rate": 1.0}}}
         ]
-        data, _ = generate_data(schema, 100)
+        data = generate_data(schema, 100)
 
         null_count = sum(1 for row in data if row["email"] is None)
         assert null_count == 100, f"Expected all nulls, got {null_count}/100"
@@ -129,7 +129,7 @@ class TestNullRateValidation:
             {"name": "field2", "type": "text", "config": {"quality_config": {"null_rate": 0.2}}},
             {"name": "field3", "type": "text"},  # No quality config
         ]
-        data, _ = generate_data(schema, 1000)
+        data = generate_data(schema, 1000)
 
         null_count_1 = sum(1 for row in data if row["field1"] is None)
         null_count_2 = sum(1 for row in data if row["field2"] is None)
@@ -155,7 +155,7 @@ class TestDuplicateRateValidation:
                 "config": {"quality_config": {"duplicate_rate": 0.1}},
             }
         ]
-        data, _ = generate_data(schema, 1000)
+        data = generate_data(schema, 1000)
 
         emails = [row["email"] for row in data if row["email"] is not None]
         unique_emails = len(set(emails))
@@ -181,7 +181,7 @@ class TestDuplicateRateValidation:
                 },
             }
         ]
-        data, _ = generate_data(schema, 1000)
+        data = generate_data(schema, 1000)
 
         # Nulls should not be counted as duplicates
         values = [row["value"] for row in data if row["value"] is not None]
@@ -204,7 +204,7 @@ class TestDuplicateRateValidation:
                 "config": {"min": 1, "max": 1000, "quality_config": {"duplicate_rate": 0.0}},
             }
         ]
-        data, _ = generate_data(schema, 100)
+        data = generate_data(schema, 100)
 
         values = [row["value"] for row in data]
         # With duplicate_rate=0, we should see natural randomness
@@ -221,7 +221,7 @@ class TestSimilarRateValidation:
         schema = [
             {"name": "name", "type": "name", "config": {"quality_config": {"similar_rate": 0.2}}}
         ]
-        data, _ = generate_data(schema, 1000)
+        data = generate_data(schema, 1000)
 
         # Count how many names might have whitespace or character variations
         # This is hard to test precisely, but we can check that not all values are identical
@@ -236,7 +236,7 @@ class TestSimilarRateValidation:
         schema = [
             {"name": "email", "type": "email", "config": {"quality_config": {"similar_rate": 0.3}}}
         ]
-        data, _ = generate_data(schema, 500)
+        data = generate_data(schema, 500)
 
         emails = [row["email"] for row in data if row["email"] is not None]
 
@@ -258,7 +258,7 @@ class TestOutlierRateValidation:
                 "config": {"min": 1, "max": 100, "quality_config": {"outlier_rate": 0.1}},
             }
         ]
-        data, _ = generate_data(schema, 1000)
+        data = generate_data(schema, 1000)
 
         values = [row["value"] for row in data if row["value"] is not None]
 
@@ -280,7 +280,7 @@ class TestOutlierRateValidation:
                 "config": {"min": 10.0, "max": 100.0, "quality_config": {"outlier_rate": 0.15}},
             }
         ]
-        data, _ = generate_data(schema, 1000)
+        data = generate_data(schema, 1000)
 
         prices = [row["price"] for row in data if row["price"] is not None]
 
@@ -301,7 +301,7 @@ class TestFormatIssueValidation:
                 "config": {"quality_config": {"invalid_format_rate": 0.2}},
             }
         ]
-        data, _ = generate_data(schema, 1000)
+        data = generate_data(schema, 1000)
 
         emails = [row["email"] for row in data if row["email"] is not None]
 
@@ -333,7 +333,7 @@ class TestCombinedQualityIssues:
                 },
             }
         ]
-        data, _ = generate_data(schema, 1000)
+        data = generate_data(schema, 1000)
 
         # Check nulls
         null_count = sum(1 for row in data if row["email"] is None)
@@ -373,7 +373,7 @@ class TestCombinedQualityIssues:
                 "config": {"min": 18, "max": 80, "quality_config": {"outlier_rate": 0.05}},
             },
         ]
-        data, _ = generate_data(schema, 1000)
+        data = generate_data(schema, 1000)
 
         assert len(data) == 1000
 

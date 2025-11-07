@@ -17,7 +17,7 @@ class TestGenerateData:
             {"name": "id", "type": "int"},
             {"name": "email", "type": "email"},
         ]
-        data, _ = generate_data(schema, 10)
+        data = generate_data(schema, 10)
 
         assert len(data) == 10
         assert all(isinstance(row["id"], int) for row in data)
@@ -26,13 +26,13 @@ class TestGenerateData:
     def test_generate_zero_rows(self):
         """Test generating zero rows."""
         schema = [{"name": "id", "type": "int"}]
-        data, _ = generate_data(schema, 0)
+        data = generate_data(schema, 0)
         assert len(data) == 0
 
     def test_int_type_with_range(self):
         """Test int type respects min/max config."""
         schema = [{"name": "age", "type": "int", "config": {"min": 18, "max": 65}}]
-        data, _ = generate_data(schema, 100)
+        data = generate_data(schema, 100)
 
         assert all(18 <= row["age"] <= 65 for row in data)
 
@@ -41,7 +41,7 @@ class TestGenerateData:
         schema = [
             {"name": "price", "type": "float", "config": {"min": 0.0, "max": 100.0, "precision": 3}}
         ]
-        data, _ = generate_data(schema, 50)
+        data = generate_data(schema, 50)
 
         for row in data:
             assert 0.0 <= row["price"] <= 100.0
@@ -54,7 +54,7 @@ class TestGenerateData:
     def test_currency_type(self):
         """Test currency type generation."""
         schema = [{"name": "amount", "type": "currency", "config": {"min": 100.0, "max": 1000.0}}]
-        data, _ = generate_data(schema, 50)
+        data = generate_data(schema, 50)
 
         for row in data:
             assert 100.0 <= row["amount"] <= 1000.0
@@ -64,7 +64,7 @@ class TestGenerateData:
     def test_percentage_type(self):
         """Test percentage type generation."""
         schema = [{"name": "discount", "type": "percentage"}]
-        data, _ = generate_data(schema, 50)
+        data = generate_data(schema, 50)
 
         assert all(0.0 <= row["discount"] <= 100.0 for row in data)
 
@@ -72,21 +72,21 @@ class TestGenerateData:
         """Test category type generation."""
         categories = ["A", "B", "C"]
         schema = [{"name": "status", "type": "category", "config": {"categories": categories}}]
-        data, _ = generate_data(schema, 100)
+        data = generate_data(schema, 100)
 
         assert all(row["status"] in categories for row in data)
 
     def test_bool_type(self):
         """Test bool type generation."""
         schema = [{"name": "active", "type": "bool"}]
-        data, _ = generate_data(schema, 50)
+        data = generate_data(schema, 50)
 
         assert all(isinstance(row["active"], bool) for row in data)
 
     def test_date_type(self):
         """Test date type generation."""
         schema = [{"name": "created", "type": "date"}]
-        data, _ = generate_data(schema, 10)
+        data = generate_data(schema, 10)
 
         for row in data:
             assert hasattr(row["created"], "year")  # Check it's a date object
@@ -98,7 +98,7 @@ class TestGenerateData:
         schema = [
             {"name": "created", "type": "date", "config": {"start_date": start, "end_date": end}}
         ]
-        data, _ = generate_data(schema, 50)
+        data = generate_data(schema, 50)
 
         for row in data:
             assert start.date() <= row["created"] <= end.date()
@@ -106,7 +106,7 @@ class TestGenerateData:
     def test_datetime_type(self):
         """Test datetime type generation."""
         schema = [{"name": "timestamp", "type": "datetime"}]
-        data, _ = generate_data(schema, 10)
+        data = generate_data(schema, 10)
 
         for row in data:
             assert hasattr(row["timestamp"], "hour")  # Check it's a datetime object
@@ -114,14 +114,14 @@ class TestGenerateData:
     def test_email_type(self):
         """Test email type generation."""
         schema = [{"name": "email", "type": "email"}]
-        data, _ = generate_data(schema, 10)
+        data = generate_data(schema, 10)
 
         assert all("@" in row["email"] for row in data)
 
     def test_phone_type(self):
         """Test phone type generation."""
         schema = [{"name": "phone", "type": "phone"}]
-        data, _ = generate_data(schema, 10)
+        data = generate_data(schema, 10)
 
         assert all(isinstance(row["phone"], str) for row in data)
 
@@ -132,7 +132,7 @@ class TestGenerateData:
             {"name": "last", "type": "name", "config": {"text_type": "last_name"}},
             {"name": "full", "type": "name", "config": {"text_type": "full_name"}},
         ]
-        data, _ = generate_data(schema, 10)
+        data = generate_data(schema, 10)
 
         assert all(isinstance(row["first"], str) for row in data)
         assert all(isinstance(row["last"], str) for row in data)
@@ -147,7 +147,7 @@ class TestGenerateData:
             {"name": "zip", "type": "address", "config": {"text_type": "zip"}},
             {"name": "country", "type": "address", "config": {"text_type": "country"}},
         ]
-        data, _ = generate_data(schema, 10)
+        data = generate_data(schema, 10)
 
         for key in ["street", "city", "state", "zip", "country"]:
             assert all(isinstance(row[key], str) for row in data)
@@ -155,21 +155,21 @@ class TestGenerateData:
     def test_company_type(self):
         """Test company type generation."""
         schema = [{"name": "company", "type": "company"}]
-        data, _ = generate_data(schema, 10)
+        data = generate_data(schema, 10)
 
         assert all(isinstance(row["company"], str) for row in data)
 
     def test_product_type(self):
         """Test product type generation."""
         schema = [{"name": "product", "type": "product"}]
-        data, _ = generate_data(schema, 10)
+        data = generate_data(schema, 10)
 
         assert all(isinstance(row["product"], str) for row in data)
 
     def test_uuid_type(self):
         """Test UUID type generation."""
         schema = [{"name": "id", "type": "uuid"}]
-        data, _ = generate_data(schema, 10)
+        data = generate_data(schema, 10)
 
         # Check format: 8-4-4-4-12 hex characters
         for row in data:
@@ -182,7 +182,7 @@ class TestGenerateData:
     def test_text_type(self):
         """Test text type generation."""
         schema = [{"name": "description", "type": "text"}]
-        data, _ = generate_data(schema, 10)
+        data = generate_data(schema, 10)
 
         assert all(isinstance(row["description"], str) for row in data)
         assert all(len(row["description"]) <= 200 for row in data)
@@ -201,7 +201,7 @@ class TestGenerateData:
             },
             {"name": "created_at", "type": "datetime"},
         ]
-        data, _ = generate_data(schema, 20)
+        data = generate_data(schema, 20)
 
         assert len(data) == 20
         for row in data:
@@ -234,7 +234,7 @@ class TestGenerateData:
             {"name": "amount", "type": "currency"},
         ]
 
-        data, _ = generate_data(schema, 20)
+        data = generate_data(schema, 20)
 
         assert len(data) == 20
         # All user_ids should be from the parent table
@@ -303,7 +303,7 @@ class TestGenerateData:
             },
         ]
 
-        data, _ = generate_data(schema, 30)
+        data = generate_data(schema, 30)
 
         assert len(data) == 30
         valid_categories = ["A", "B", "C"]

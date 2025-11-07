@@ -38,7 +38,7 @@ class TestBinaryClassificationModels:
             {"name": "feature3", "type": "int", "config": {"min": 1, "max": 100}},
             {"name": "target", "type": "bool"},
         ]
-        data, _ = generate_data(schema, 1000)
+        data = generate_data(schema, 1000)
 
         # Prepare data
         X = [[row["feature1"], row["feature2"], row["feature3"]] for row in data]
@@ -69,7 +69,7 @@ class TestBinaryClassificationModels:
             {"name": "feature3", "type": "float", "config": {"min": -10.0, "max": 10.0}},
             {"name": "is_positive", "type": "bool"},
         ]
-        data, _ = generate_data(schema, 800)
+        data = generate_data(schema, 800)
 
         # Prepare data
         X = [[row["feature1"], row["feature2"], row["feature3"]] for row in data]
@@ -100,7 +100,7 @@ class TestBinaryClassificationModels:
             {"name": "feature2", "type": "float", "config": {"min": 0.0, "max": 1.0}},
             {"name": "target", "type": "bool"},
         ]
-        data, _ = generate_data(schema, 600)
+        data = generate_data(schema, 600)
 
         X = [[row["feature1"], row["feature2"]] for row in data]
         y = [int(row["target"]) for row in data]
@@ -127,7 +127,7 @@ class TestBinaryClassificationModels:
             {"name": "feature3", "type": "int", "config": {"min": 1, "max": 20}},
             {"name": "target", "type": "bool"},
         ]
-        data, _ = generate_data(schema, 1000)
+        data = generate_data(schema, 1000)
 
         X = [[row["feature1"], row["feature2"], row["feature3"]] for row in data]
         y = [int(row["target"]) for row in data]
@@ -164,7 +164,7 @@ class TestMultiClassClassificationModels:
                 "config": {"categories": ["class_0", "class_1", "class_2", "class_3"]},
             },
         ]
-        data, _ = generate_data(schema, 800)
+        data = generate_data(schema, 800)
 
         # Prepare data
         X = [[row["feature1"], row["feature2"], row["feature3"]] for row in data]
@@ -197,7 +197,7 @@ class TestMultiClassClassificationModels:
                 "config": {"categories": ["A", "B", "C"]},
             },
         ]
-        data, _ = generate_data(schema, 600)
+        data = generate_data(schema, 600)
 
         X = [[row["feature1"], row["feature2"]] for row in data]
         y = [row["target"] for row in data]
@@ -226,7 +226,7 @@ class TestMultiClassClassificationModels:
                 "config": {"categories": ["A", "B", "C", "D"]},
             },
         ]
-        data, _ = generate_data(schema, 1000)
+        data = generate_data(schema, 1000)
 
         X = [[row["feature1"], row["feature2"]] for row in data]
         y = [row["class"] for row in data]
@@ -260,7 +260,7 @@ class TestRegressionModels:
             {"name": "feature3", "type": "int", "config": {"min": 1, "max": 50}},
             {"name": "target", "type": "float", "config": {"min": 0.0, "max": 1000.0}},
         ]
-        data, _ = generate_data(schema, 800)
+        data = generate_data(schema, 800)
 
         X = [[row["feature1"], row["feature2"], row["feature3"]] for row in data]
         y = [row["target"] for row in data]
@@ -287,7 +287,7 @@ class TestRegressionModels:
             {"name": "bedrooms", "type": "int", "config": {"min": 1, "max": 5}},
             {"name": "price", "type": "currency", "config": {"min": 100000, "max": 1000000}},
         ]
-        data, _ = generate_data(schema, 500)
+        data = generate_data(schema, 500)
 
         X = [[row["square_feet"], row["bedrooms"]] for row in data]
         y = [row["price"] for row in data]
@@ -318,7 +318,7 @@ class TestRegressionModels:
             {"name": "feature1", "type": "float", "config": {"min": 0.0, "max": 10.0}},
             {"name": "target", "type": "float", "config": {"min": 0.0, "max": 100.0}},
         ]
-        data, _ = generate_data(schema, 300)
+        data = generate_data(schema, 300)
 
         X = [[row["feature1"]] for row in data]
         y = [row["target"] for row in data]
@@ -350,7 +350,7 @@ class TestLearningCurves:
         ]
 
         # Generate large dataset
-        data, _ = generate_data(schema, 2000)
+        data = generate_data(schema, 2000)
         X = [[row["feature1"], row["feature2"]] for row in data]
         y = [int(row["target"]) for row in data]
 
@@ -383,7 +383,7 @@ class TestLearningCurves:
             {"name": "feature1", "type": "float", "config": {"min": 0.0, "max": 10.0}},
             {"name": "target", "type": "bool"},
         ]
-        data, _ = generate_data(schema, 100)
+        data = generate_data(schema, 100)
 
         X = [[row["feature1"]] for row in data]
         y = [int(row["target"]) for row in data]
@@ -421,7 +421,7 @@ class TestModelWithMessyData:
             },
             {"name": "target", "type": "bool"},
         ]
-        data, _ = generate_data(schema, 500)
+        data = generate_data(schema, 500)
 
         # Filter out rows with nulls for this test (real-world would use imputation)
         clean_data = [
@@ -458,7 +458,7 @@ class TestModelWithMessyData:
             {"name": "feature2", "type": "float", "config": {"min": 0.0, "max": 10.0}},
             {"name": "target", "type": "bool"},
         ]
-        data, _ = generate_data(schema, 600)
+        data = generate_data(schema, 600)
 
         X = [[row["feature1"], row["feature2"]] for row in data]
         y = [int(row["target"]) for row in data]
@@ -492,7 +492,7 @@ class TestModelPerformanceMetrics:
             {"name": "feature2", "type": "float", "config": {"min": 0.0, "max": 10.0}},
             {"name": "target", "type": "bool"},
         ]
-        data, _ = generate_data(schema, 500)
+        data = generate_data(schema, 500)
 
         X = [[row["feature1"], row["feature2"]] for row in data]
         y = [int(row["target"]) for row in data]
@@ -523,7 +523,7 @@ class TestModelPerformanceMetrics:
             {"name": "feature1", "type": "float", "config": {"min": 0.0, "max": 10.0}},
             {"name": "target", "type": "float", "config": {"min": 0.0, "max": 100.0}},
         ]
-        data, _ = generate_data(schema, 400)
+        data = generate_data(schema, 400)
 
         X = [[row["feature1"]] for row in data]
         y = [row["target"] for row in data]
