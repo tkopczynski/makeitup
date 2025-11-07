@@ -12,9 +12,12 @@ from data_generation.tools.schema_inference import infer_schema_tool
 logger = logging.getLogger(__name__)
 
 
-def create_data_generation_agent():
+def create_data_generation_agent(seed: int | None = None):
     """
     Create a LangGraph ReAct agent for data generation that can handle multiple files.
+
+    Args:
+        seed: Optional reproducibility code to pass to generation tools
 
     Returns:
         Compiled LangGraph agent configured with data generation tools
@@ -22,7 +25,21 @@ def create_data_generation_agent():
     llm = ChatOpenAI(model=config.LLM_MODEL, temperature=0)
     tools = [infer_schema_tool, generate_data_tool]
 
-    system_message = """You are a data generation assistant. \
+    seed_instruction = ""
+    if seed is not None:
+        seed_instruction = f"""
+REPRODUCIBILITY:
+- A reproducibility code ({seed}) has been provided
+- Pass this code as the 'seed' parameter to generate_data_tool
+- This ensures the exact same data is generated every time"""
+    else:
+        seed_instruction = """
+REPRODUCIBILITY:
+- No reproducibility code provided, data will be randomly generated
+- The generate_data_tool will automatically create a reproducibility code
+- Include the reproducibility code in your final response to the user"""
+
+    system_message = f"""You are a data generation assistant. \
 You help users generate synthetic datasets.
 
 When the user requests data generation:
@@ -30,7 +47,7 @@ When the user requests data generation:
 2. Determine if datasets have relationships (e.g., foreign keys)
 3. For EACH dataset:
    a. Use infer_schema_tool with a description of the data
-   b. Use generate_data_tool with the schema, number of rows, and output file
+   b. Use generate_data_tool with the schema, number of rows, output file, and seed
 4. Continue until all datasets are generated
 
 IMPORTANT INSTRUCTIONS:
@@ -38,8 +55,9 @@ IMPORTANT INSTRUCTIONS:
 - If output file is not specified, use "generated_data.csv" for single file or \
 descriptive names for multiple files
 - For generate_data_tool, the input MUST be valid JSON with keys: \
-schema_yaml, num_rows, output_file
+schema_yaml, num_rows, output_file, seed
 - Use the EXACT schema_yaml from infer_schema_tool output (as a string)
+{seed_instruction}
 
 RELATIONSHIPS BETWEEN TABLES:
 - When generating related tables (e.g., users and transactions), generate the PARENT \
@@ -55,20 +73,25 @@ table FIRST (e.g., users.csv), THEN the child table (e.g., transactions.csv)
     return agent
 
 
-def run_agent(user_request: str) -> str:
+def run_agent(user_request: str, seed: int | None = None) -> str:
     """
     Run the LangGraph ReAct agent with a user request.
 
     Args:
         user_request: Natural language request for data generation
+        seed: Optional reproducibility code for deterministic generation
 
     Returns:
-        Agent's response
+        Agent's response with reproducibility information
     """
-    agent = create_data_generation_agent()
+    agent = create_data_generation_agent(seed)
 
     try:
-        logger.info(f"Processing request: {user_request}")
+        if seed is not None:
+            logger.info(f"Processing request with reproducibility code {seed}: {user_request}")
+        else:
+            logger.info(f"Processing request: {user_request}")
+
         result = agent.invoke({"messages": [("user", user_request)]})
 
         # Extract the final message from the agent

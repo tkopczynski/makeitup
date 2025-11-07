@@ -12,22 +12,42 @@ setup_logging()
 
 @click.command()
 @click.argument("request", nargs=-1, required=True)
+@click.option(
+    "--seed",
+    "--reproducibility-code",
+    type=int,
+    default=None,
+    help="Reproducibility code (6-digit number) to generate the same data. "
+    "Leave blank for random generation.",
+)
 @click.version_option(version="0.1.0")
-def main(request):
+def main(request, seed):
     """
     Generate synthetic datasets using natural language requests.
 
     Examples:
-        data-generation "Create 500 rows of customer data with names, emails,
-        and phone numbers, save to customers.csv"
+        # Random generation (different every time)
+        data-generation "100 users with emails"
 
-        data-generation "Generate 1000 rows of sales data"
+        # Reproducible generation (same data every time)
+        data-generation "100 users with emails" --seed 123456
+
+        # Using the full parameter name
+        data-generation "100 users" --reproducibility-code 987654
+
+    Reproducibility:
+        Every generation produces a 6-digit reproducibility code.
+        Use this code with --seed to recreate the exact same dataset later.
     """
     user_request = " ".join(request)
-    click.echo(f"Processing request: {user_request}\n")
+
+    if seed:
+        click.echo(f"Processing request (Reproducibility Code: {seed}): {user_request}\n")
+    else:
+        click.echo(f"Processing request: {user_request}\n")
 
     try:
-        result = run_agent(user_request)
+        result = run_agent(user_request, seed)
         click.echo(f"\n{result}")
     except Exception as e:
         click.echo(f"\nError: {e}", err=True)
