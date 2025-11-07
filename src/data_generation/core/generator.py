@@ -10,6 +10,7 @@ from typing import Any
 import pandas as pd
 from faker import Faker
 
+from data_generation import config
 from data_generation.core.quality import QualityConfig, apply_quality_config
 from data_generation.core.target_generation import generate_target_value
 from data_generation.tools.schema_validation import validate_schema
@@ -17,7 +18,28 @@ from data_generation.tools.schema_validation import validate_schema
 logger = logging.getLogger(__name__)
 
 
-def generate_data(schema: list[dict[str, Any]], num_rows: int) -> list[dict[str, Any]]:
+def generate_reproducibility_code() -> int:
+    """Generate a random 6-digit reproducibility code.
+
+    Returns:
+        Random integer between SEED_MIN and SEED_MAX (100000-999999)
+    """
+    return random.randint(config.SEED_MIN, config.SEED_MAX)
+
+
+def _set_seed(seed: int) -> None:
+    """Set seeds for Python random and Faker for reproducible generation.
+
+    Args:
+        seed: Reproducibility code to set
+    """
+    random.seed(seed)
+    Faker.seed(seed)
+
+
+def generate_data(
+    schema: list[dict[str, Any]], num_rows: int, seed: int | None = None
+) -> tuple[list[dict[str, Any]], int]:
     """
     Generate synthetic data based on a schema.
 
@@ -51,14 +73,25 @@ def generate_data(schema: list[dict[str, Any]], num_rows: int) -> list[dict[str,
                    }
                ]
         num_rows: Number of rows to generate
+        seed: Reproducibility code (None for random generation)
 
     Returns:
-        List of dictionaries containing the generated data
+        Tuple of (generated_data, seed_used)
+        - generated_data: List of dictionaries containing the generated data
+        - seed_used: The actual reproducibility code used (generated if None provided)
 
     Raises:
         SchemaValidationError: If schema is invalid
     """
     validate_schema(schema)
+
+    # Generate seed if not provided
+    if seed is None:
+        seed = generate_reproducibility_code()
+
+    # Set seed for reproducible generation
+    _set_seed(seed)
+    logger.info(f"Using reproducibility code: {seed}")
 
     fake = Faker()
     data = []
@@ -131,7 +164,7 @@ def generate_data(schema: list[dict[str, Any]], num_rows: int) -> list[dict[str,
 
         data.append(row)
 
-    return data
+    return data, seed
 
 
 def _generate_value(
@@ -245,7 +278,17 @@ def _generate_value(
         return fake.catch_phrase()
 
     elif field_type == "uuid":
-        return str(uuid.uuid4())
+        # Use random.getrandbits for reproducible UUID generation when seed is set
+        # UUID4 format: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
+        # where y is one of 8, 9, a, b
+        random_bits = random.getrandbits(128)
+        # Set version (4) and variant bits for UUID4
+        random_bits &= ~(0xF << 76)  # Clear version bits
+        random_bits |= (0x4 << 76)  # Set version to 4
+        random_bits &= ~(0x3 << 62)  # Clear variant bits
+        random_bits |= (0x2 << 62)  # Set variant to RFC 4122
+        # Convert to UUID
+        return str(uuid.UUID(int=random_bits, version=4))
 
     elif field_type == "text":
         return fake.text(max_nb_chars=200)

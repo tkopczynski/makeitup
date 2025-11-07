@@ -68,7 +68,8 @@ data_generation/
 │   ├── test_statistical_validation.py # 20+ statistical tests
 │   ├── test_ml_validation.py          # 20+ ML fitness tests
 │   ├── test_model_training.py         # 30+ model training tests
-│   └── test_target_generation.py      # 23 target generation tests
+│   ├── test_target_generation.py      # 23 target generation tests
+│   └── test_reproducibility.py        # 18 reproducibility tests
 ├── examples/                # Usage examples
 │   └── related_tables.md    # Foreign key documentation
 └── pyproject.toml          # Project configuration
@@ -106,6 +107,184 @@ python -m data_generation "Generate 100 users with names and emails"
 # From the old main.py (still works for backward compatibility)
 python main.py "Generate 100 users with names and emails"
 ```
+
+## Reproducibility
+
+Generate the same data every time using reproducibility codes.
+
+### Overview
+
+Every data generation automatically produces a **6-digit reproducibility code** (e.g., `123456`). Use this code to recreate the exact same dataset later - same values, same order, same quality issues.
+
+**Key Features:**
+- Automatic code generation (no setup required)
+- Controls all randomness: values, quality degradation, target generation
+- Short 6-digit codes (easy to share and remember)
+- GUI-friendly naming ("reproducibility code" instead of "seed")
+- Backward compatible (existing code works without changes)
+
+### Basic Usage
+
+**Random Generation (default):**
+```bash
+$ data-generation "100 users with names and emails"
+
+Successfully generated 100 rows and saved to /path/to/generated_data.csv
+Reproducibility Code: 456789
+(Use --seed 456789 to recreate this exact dataset)
+```
+
+**Reproducible Generation:**
+```bash
+# Use the code from a previous run
+$ data-generation "100 users with names and emails" --seed 456789
+
+# Or use the full parameter name
+$ data-generation "100 users" --reproducibility-code 456789
+```
+
+### CLI Options
+
+| Option | Description |
+|--------|-------------|
+| `--seed N` | Use reproducibility code N (6-digit number) |
+| `--reproducibility-code N` | Alias for `--seed` (more user-friendly) |
+
+### What Gets Reproduced
+
+With the same reproducibility code, these are **identical** across runs:
+
+✅ All data values (numbers, text, dates, UUIDs, etc.)
+✅ Random selections (categories, booleans)
+✅ Quality degradation (nulls, duplicates, typos, outliers, format issues)
+✅ Target variable generation (both rule-based and probabilistic)
+✅ Reference selections (which parent IDs are chosen)
+✅ Faker-generated text (names, addresses, companies, etc.)
+
+❌ **Not reproduced:** Schema inference (LLM remains non-deterministic by design)
+
+### Use Cases
+
+**1. Testing and CI/CD**
+```python
+# test_integration.py
+KNOWN_GOOD_SEED = 555666
+
+def test_data_pipeline():
+    # Always uses same test data
+    generate_data("100 users", seed=KNOWN_GOOD_SEED)
+    # ... run pipeline tests ...
+```
+
+**2. Documentation and Demos**
+```bash
+# README examples use fixed seeds
+$ data-generation "500 transactions" --seed 111222
+# Anyone can reproduce exact screenshots/examples
+```
+
+**3. Debugging**
+```bash
+# Report bug with reproducibility code
+"Bug in processing: use --seed 999888 to reproduce"
+```
+
+**4. Experiments and Comparisons**
+```bash
+# Run model on same data with different hyperparameters
+$ python train_model.py --data-seed 333444 --model lr
+$ python train_model.py --data-seed 333444 --model rf
+```
+
+### Examples
+
+**Save and recreate a dataset:**
+```bash
+# First generation
+$ data-generation "50 products with names and prices" --seed 111222
+Generated products.csv
+Reproducibility Code: 111222
+
+# Later, recreate exact same data
+$ data-generation "50 products with names and prices" --seed 111222
+# products.csv is byte-for-byte identical to first run
+```
+
+**Reproducible quality degradation:**
+```bash
+$ data-generation "1000 users with emails (10% null, 5% duplicates)" --seed 777888
+# Same null positions and duplicate patterns every time
+```
+
+**Reproducible target generation:**
+```bash
+$ data-generation "500 transactions, flag fraud if amount > 5000" --seed 123123
+# Same fraud labels every time
+```
+
+### Programmatic Usage
+
+```python
+from data_generation.core.generator import generate_data
+
+schema = [
+    {"name": "id", "type": "int", "config": {"min": 1, "max": 1000}},
+    {"name": "name", "type": "name"},
+]
+
+# Random generation
+data1, seed1 = generate_data(schema, 100)
+print(f"Generated with code: {seed1}")  # e.g., 456789
+
+# Reproducible generation
+data2, seed2 = generate_data(schema, 100, seed=456789)
+# data2 is identical to data1 if seed1 was 456789
+```
+
+### Technical Details
+
+**Implementation:**
+- Sets `random.seed()` for Python's random module
+- Sets `Faker.seed()` for Faker library
+- Uses `random.getrandbits(128)` for reproducible UUIDs
+- Seed range: 100000-999999 (6-digit codes)
+
+**Files:**
+- `src/data_generation/config.py`: Seed configuration (SEED_MIN, SEED_MAX)
+- `src/data_generation/core/generator.py`: Seed functions and generation logic
+- `src/data_generation/tools/data_generation.py`: Tool with seed parameter
+- `src/data_generation/core/agent.py`: Agent seed handling
+- `src/data_generation/cli.py`: CLI seed options
+
+**Testing:**
+- `tests/test_reproducibility.py`: 18+ comprehensive reproducibility tests
+- Tests cover: identical data, different seeds, quality degradation, targets, all data types
+
+### Future GUI Support
+
+The reproducibility code is designed to be GUI-friendly:
+- Short 6-digit codes (easy to copy/paste/remember)
+- User-friendly terminology (not "seed" or "random state")
+- Can be presented as "Generation Code" or "Recipe Number"
+- Works well with "Save Recipe" / "Use Recipe" button patterns
+
+### Limitations
+
+**Multi-table generation:**
+When generating related tables (parent → child), use the **same seed** for both:
+```bash
+# Generate parent table
+$ data-generation "50 users" --seed 111111 --output users.csv
+
+# Generate child table with same seed
+$ data-generation "200 transactions referencing users.csv" --seed 111111
+```
+
+**Schema inference not reproducible:**
+The LLM-based schema inference remains non-deterministic. For full reproducibility, save and reuse the YAML schema directly.
+
+**External data sources:**
+Reference type loads data from external CSVs. Changes to those files will affect reproducibility.
 
 ## Data Types & Schema Format
 

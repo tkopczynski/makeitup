@@ -19,7 +19,7 @@ class TestNumericRangeValidation:
     def test_int_range_validation(self):
         """Test all int values fall within configured range."""
         schema = [{"name": "age", "type": "int", "config": {"min": 18, "max": 65}}]
-        data = generate_data(schema, 1000)
+        data, _ = generate_data(schema, 1000)
 
         values = [row["age"] for row in data]
         assert all(18 <= v <= 65 for v in values), "Some int values outside range"
@@ -29,7 +29,7 @@ class TestNumericRangeValidation:
     def test_float_range_validation(self):
         """Test all float values fall within configured range."""
         schema = [{"name": "score", "type": "float", "config": {"min": 0.0, "max": 100.0}}]
-        data = generate_data(schema, 1000)
+        data, _ = generate_data(schema, 1000)
 
         values = [row["score"] for row in data]
         assert all(0.0 <= v <= 100.0 for v in values), "Some float values outside range"
@@ -37,7 +37,7 @@ class TestNumericRangeValidation:
     def test_currency_range_validation(self):
         """Test all currency values fall within configured range."""
         schema = [{"name": "price", "type": "currency", "config": {"min": 10.0, "max": 500.0}}]
-        data = generate_data(schema, 1000)
+        data, _ = generate_data(schema, 1000)
 
         values = [row["price"] for row in data]
         assert all(10.0 <= v <= 500.0 for v in values), "Some currency values outside range"
@@ -47,7 +47,7 @@ class TestNumericRangeValidation:
     def test_percentage_range_validation(self):
         """Test all percentage values fall within configured range."""
         schema = [{"name": "discount", "type": "percentage"}]
-        data = generate_data(schema, 1000)
+        data, _ = generate_data(schema, 1000)
 
         values = [row["discount"] for row in data]
         assert all(0.0 <= v <= 100.0 for v in values), "Some percentages outside 0-100 range"
@@ -57,7 +57,7 @@ class TestNumericRangeValidation:
         schema = [
             {"name": "growth", "type": "percentage", "config": {"min": -20.0, "max": 50.0}}
         ]
-        data = generate_data(schema, 500)
+        data, _ = generate_data(schema, 500)
 
         values = [row["growth"] for row in data]
         assert all(-20.0 <= v <= 50.0 for v in values), "Some percentages outside custom range"
@@ -69,7 +69,7 @@ class TestDistributionProperties:
     def test_int_distribution_coverage(self):
         """Test int values cover the configured range reasonably."""
         schema = [{"name": "value", "type": "int", "config": {"min": 1, "max": 100}}]
-        data = generate_data(schema, 1000)
+        data, _ = generate_data(schema, 1000)
 
         values = [row["value"] for row in data]
         unique_values = set(values)
@@ -84,7 +84,7 @@ class TestDistributionProperties:
     def test_float_distribution_coverage(self):
         """Test float values are well distributed."""
         schema = [{"name": "value", "type": "float", "config": {"min": 0.0, "max": 1.0}}]
-        data = generate_data(schema, 1000)
+        data, _ = generate_data(schema, 1000)
 
         values = [row["value"] for row in data]
 
@@ -102,7 +102,7 @@ class TestDistributionProperties:
         """Test category values are distributed across all options."""
         categories = ["A", "B", "C", "D", "E"]
         schema = [{"name": "category", "type": "category", "config": {"categories": categories}}]
-        data = generate_data(schema, 1000)
+        data, _ = generate_data(schema, 1000)
 
         values = [row["category"] for row in data]
         unique_values = set(values)
@@ -121,7 +121,7 @@ class TestDistributionProperties:
     def test_bool_distribution(self):
         """Test bool values have both True and False."""
         schema = [{"name": "active", "type": "bool"}]
-        data = generate_data(schema, 1000)
+        data, _ = generate_data(schema, 1000)
 
         values = [row["active"] for row in data]
 
@@ -141,7 +141,7 @@ class TestCategoryValidation:
         """Test all category values come from allowed list."""
         categories = ["pending", "approved", "rejected"]
         schema = [{"name": "status", "type": "category", "config": {"categories": categories}}]
-        data = generate_data(schema, 500)
+        data, _ = generate_data(schema, 500)
 
         values = [row["status"] for row in data]
         assert all(
@@ -151,7 +151,7 @@ class TestCategoryValidation:
     def test_single_category(self):
         """Test category with only one option."""
         schema = [{"name": "type", "type": "category", "config": {"categories": ["fixed"]}}]
-        data = generate_data(schema, 100)
+        data, _ = generate_data(schema, 100)
 
         values = [row["type"] for row in data]
         assert all(v == "fixed" for v in values), "Single category not working"
@@ -160,7 +160,7 @@ class TestCategoryValidation:
         """Test category with many options."""
         categories = [f"cat_{i}" for i in range(100)]
         schema = [{"name": "category", "type": "category", "config": {"categories": categories}}]
-        data = generate_data(schema, 1000)
+        data, _ = generate_data(schema, 1000)
 
         values = [row["category"] for row in data]
         assert all(v in categories for v in values), "Some values not in large category list"
@@ -176,7 +176,7 @@ class TestDateTimeValidation:
         schema = [
             {"name": "date", "type": "date", "config": {"start_date": start, "end_date": end}}
         ]
-        data = generate_data(schema, 500)
+        data, _ = generate_data(schema, 500)
 
         dates = [row["date"] for row in data]
         assert all(
@@ -194,7 +194,7 @@ class TestDateTimeValidation:
                 "config": {"start_date": start, "end_date": end},
             }
         ]
-        data = generate_data(schema, 500)
+        data, _ = generate_data(schema, 500)
 
         timestamps = [row["timestamp"] for row in data]
         assert all(
@@ -204,7 +204,7 @@ class TestDateTimeValidation:
     def test_date_default_range(self):
         """Test date generation with default range (last year)."""
         schema = [{"name": "created", "type": "date"}]
-        data = generate_data(schema, 100)
+        data, _ = generate_data(schema, 100)
 
         dates = [row["created"] for row in data]
         # All dates should be in the past year
@@ -214,7 +214,7 @@ class TestDateTimeValidation:
     def test_datetime_valid_components(self):
         """Test datetime has valid components."""
         schema = [{"name": "timestamp", "type": "datetime"}]
-        data = generate_data(schema, 100)
+        data, _ = generate_data(schema, 100)
 
         for row in data:
             dt = row["timestamp"]
@@ -231,7 +231,7 @@ class TestFormatValidation:
     def test_uuid_format(self):
         """Test UUID format matches 8-4-4-4-12 pattern."""
         schema = [{"name": "id", "type": "uuid"}]
-        data = generate_data(schema, 100)
+        data, _ = generate_data(schema, 100)
 
         uuid_pattern = re.compile(r"^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$")
 
@@ -243,7 +243,7 @@ class TestFormatValidation:
     def test_email_format(self):
         """Test email format contains @ and domain."""
         schema = [{"name": "email", "type": "email"}]
-        data = generate_data(schema, 100)
+        data, _ = generate_data(schema, 100)
 
         for row in data:
             email = row["email"]
@@ -253,7 +253,7 @@ class TestFormatValidation:
     def test_phone_non_empty(self):
         """Test phone numbers are non-empty strings."""
         schema = [{"name": "phone", "type": "phone"}]
-        data = generate_data(schema, 100)
+        data, _ = generate_data(schema, 100)
 
         for row in data:
             assert isinstance(row["phone"], str), "Phone is not a string"
@@ -262,7 +262,7 @@ class TestFormatValidation:
     def test_text_max_length(self):
         """Test text respects max length (200 chars default)."""
         schema = [{"name": "description", "type": "text"}]
-        data = generate_data(schema, 100)
+        data, _ = generate_data(schema, 100)
 
         for row in data:
             assert len(row["description"]) <= 200, f"Text exceeds 200 chars: {len(row['description'])}"
@@ -275,7 +275,7 @@ class TestUniquenessValidation:
     def test_uuid_uniqueness(self):
         """Test UUID fields have no duplicates."""
         schema = [{"name": "id", "type": "uuid"}]
-        data = generate_data(schema, 1000)
+        data, _ = generate_data(schema, 1000)
 
         ids = [row["id"] for row in data]
         unique_ids = set(ids)
@@ -285,7 +285,7 @@ class TestUniquenessValidation:
     def test_multiple_uuid_fields(self):
         """Test multiple UUID fields are all unique."""
         schema = [{"name": "id1", "type": "uuid"}, {"name": "id2", "type": "uuid"}]
-        data = generate_data(schema, 500)
+        data, _ = generate_data(schema, 500)
 
         # Each field should have unique values
         id1s = [row["id1"] for row in data]
@@ -315,7 +315,7 @@ class TestReferenceIntegrity:
                 "config": {"reference_file": str(parent_file), "reference_column": "user_id"},
             },
         ]
-        data = generate_data(schema, 200)
+        data, _ = generate_data(schema, 200)
 
         valid_user_ids = {"1", "2", "3"}  # CSV reads as strings
         user_ids = [str(row["user_id"]) for row in data]
@@ -338,7 +338,7 @@ class TestReferenceIntegrity:
                 "config": {"reference_file": str(parent_file), "reference_column": "product_id"},
             }
         ]
-        data = generate_data(schema, 500)
+        data, _ = generate_data(schema, 500)
 
         product_ids_used = set(str(row["product_id"]) for row in data)
 
@@ -364,7 +364,7 @@ class TestReferenceIntegrity:
                 "config": {"reference_file": str(parent_file), "reference_column": "cat_id"},
             },
         ]
-        data = generate_data(schema, 200)
+        data, _ = generate_data(schema, 200)
 
         valid_cats = {"A", "B", "C"}
         primary_cats = [str(row["primary_cat"]) for row in data]
@@ -394,7 +394,7 @@ class TestComplexSchemas:
             {"name": "created_at", "type": "datetime"},
             {"name": "score", "type": "percentage"},
         ]
-        data = generate_data(schema, 500)
+        data, _ = generate_data(schema, 500)
 
         assert len(data) == 500
         # Verify each row has all fields
@@ -413,7 +413,7 @@ class TestComplexSchemas:
         ]
 
         start = time.time()
-        data = generate_data(schema, 10000)
+        data, _ = generate_data(schema, 10000)
         elapsed = time.time() - start
 
         assert len(data) == 10000

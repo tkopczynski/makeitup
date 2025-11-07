@@ -35,7 +35,7 @@ class TestRuleBasedTargets:
             },
         ]
 
-        data = generate_data(schema, 1000)
+        data, _ = generate_data(schema, 1000)
 
         # Count fraud for high-value transactions
         high_value_fraud = sum(
@@ -72,7 +72,7 @@ class TestRuleBasedTargets:
             },
         ]
 
-        data = generate_data(schema, 1000)
+        data, _ = generate_data(schema, 1000)
 
         # All amounts are < 5000, so should use default probability
         fraud_count = sum(1 for row in data if row["is_fraud"])
@@ -107,7 +107,7 @@ class TestRuleBasedTargets:
             },
         ]
 
-        data = generate_data(schema, 1000)
+        data, _ = generate_data(schema, 1000)
 
         # Check rule matches (amount > 5000 AND hour >= 22)
         matching_rows = [row for row in data if row["amount"] > 5000 and row["hour"] >= 22]
@@ -153,7 +153,7 @@ class TestRuleBasedTargets:
             },
         ]
 
-        data = generate_data(schema, 1000)
+        data, _ = generate_data(schema, 1000)
 
         # First rule should match (amount > 5000 AND hour >= 22) → 90%
         first_rule_matches = [row for row in data if row["amount"] > 5000 and row["hour"] >= 22]
@@ -205,7 +205,7 @@ class TestRuleBasedTargets:
             },
         ]
 
-        data = generate_data(schema, 100)
+        data, _ = generate_data(schema, 100)
 
         # Test > operator
         for row in data:
@@ -245,7 +245,7 @@ class TestRuleBasedTargets:
             },
         ]
 
-        data = generate_data(schema, 100)
+        data, _ = generate_data(schema, 100)
 
         # All should use default probability since condition references missing field
         fraud_rate = sum(1 for row in data if row["is_fraud"]) / len(data)
@@ -274,7 +274,7 @@ class TestProbabilisticTargets:
             },
         ]
 
-        data = generate_data(schema, 1000)
+        data, _ = generate_data(schema, 1000)
 
         # High scores should have higher pass rate
         high_score_pass = sum(1 for row in data if row["score"] >= 80 and row["pass"])
@@ -309,7 +309,7 @@ class TestProbabilisticTargets:
             },
         ]
 
-        data = generate_data(schema, 1000)
+        data, _ = generate_data(schema, 1000)
 
         # New customers should churn more than long-term customers
         new_churn = sum(1 for row in data if row["tenure_months"] <= 10 and row["will_churn"])
@@ -347,7 +347,7 @@ class TestProbabilisticTargets:
             },
         ]
 
-        data = generate_data(schema, 1000)
+        data, _ = generate_data(schema, 1000)
 
         # New customer with many tickets → high churn
         high_risk = [
@@ -386,7 +386,7 @@ class TestProbabilisticTargets:
             },
         ]
 
-        data = generate_data(schema, 1000)
+        data, _ = generate_data(schema, 1000)
 
         # Even with score=100 (prob=0.5+2.0=2.5), should clamp to 0.9
         # So we should never see 100% True for high scores
@@ -418,7 +418,7 @@ class TestProbabilisticTargets:
             },
         ]
 
-        data = generate_data(schema, 1000)
+        data, _ = generate_data(schema, 1000)
 
         # Probability should be 0.5 + (50 * 0.01) = 1.0 (ignoring nonexistent feature)
         # So nearly all should be True
@@ -453,7 +453,7 @@ class TestTargetWithQualityDegradation:
             },
         ]
 
-        data = generate_data(schema, 1000)
+        data, _ = generate_data(schema, 1000)
 
         null_count = sum(1 for row in data if row["y"] is None)
         null_rate = null_count / len(data)
@@ -479,7 +479,7 @@ class TestTargetWithQualityDegradation:
             },
         ]
 
-        data = generate_data(schema, 1000)
+        data, _ = generate_data(schema, 1000)
 
         # Just verify it doesn't crash and produces valid data
         assert len(data) == 1000
@@ -646,7 +646,7 @@ class TestTargetOrdering:
             },
         ]
 
-        data = generate_data(schema, 100)
+        data, _ = generate_data(schema, 100)
 
         # Verify logic works correctly
         for row in data:
@@ -720,5 +720,5 @@ class TestSingleModeConstraint:
         ]
 
         # Should not raise
-        data = generate_data(schema, 100)
+        data, _ = generate_data(schema, 100)
         assert len(data) == 100

@@ -15,7 +15,10 @@ logger = logging.getLogger(__name__)
 
 @tool
 def generate_data_tool(
-    schema_yaml: str, num_rows: int, output_file: str = "generated_data.csv"
+    schema_yaml: str,
+    num_rows: int,
+    output_file: str = "generated_data.csv",
+    seed: int | None = None,
 ) -> str:
     """
     Generate synthetic data based on a YAML schema and save to a CSV file.
@@ -38,20 +41,23 @@ def generate_data_tool(
                 reference_column: column_name (for reference - REQUIRED)
         num_rows: Number of rows to generate
         output_file: Path to save the CSV file (default: generated_data.csv)
+        seed: Reproducibility code (optional, auto-generated if not provided)
 
     Returns:
-        Path to the generated CSV file
+        Message with file path and reproducibility code
     """
-    logger.info(f"generate_data_tool called: output_file='{output_file}', num_rows={num_rows}")
+    logger.info(
+        f"generate_data_tool called: output_file='{output_file}', num_rows={num_rows}, seed={seed}"
+    )
 
     try:
         # Parse YAML schema
         schema = yaml.safe_load(schema_yaml)
         logger.debug(f"Parsed schema with {len(schema)} columns")
 
-        # Generate data
+        # Generate data with reproducibility
         logger.info(f"Generating {num_rows} rows of data...")
-        data = generate_data(schema, num_rows)
+        data, seed_used = generate_data(schema, num_rows, seed)
 
         # Convert to DataFrame
         df = pd.DataFrame(data)
@@ -63,7 +69,12 @@ def generate_data_tool(
         logger.info(
             f"Successfully generated {num_rows} rows and saved to {output_path.absolute()}"
         )
-        return str(output_path.absolute())
+
+        return (
+            f"Successfully generated {num_rows} rows and saved to {output_path.absolute()}\n"
+            f"Reproducibility Code: {seed_used}\n"
+            f"(Use --seed {seed_used} to recreate this exact dataset)"
+        )
 
     except yaml.YAMLError as e:
         raise ValueError(f"Invalid YAML schema: {e}") from e
