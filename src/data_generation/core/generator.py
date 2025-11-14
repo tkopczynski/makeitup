@@ -328,9 +328,9 @@ def _generate_value(
         random_bits = random.getrandbits(128)
         # Set version (4) and variant bits for UUID4
         random_bits &= ~(0xF << 76)  # Clear version bits
-        random_bits |= (0x4 << 76)  # Set version to 4
+        random_bits |= 0x4 << 76  # Set version to 4
         random_bits &= ~(0x3 << 62)  # Clear variant bits
-        random_bits |= (0x2 << 62)  # Set variant to RFC 4122
+        random_bits |= 0x2 << 62  # Set variant to RFC 4122
         # Convert to UUID
         return str(uuid.UUID(int=random_bits, version=4))
 
@@ -370,9 +370,7 @@ def _generate_value(
 
             # Store the values in cache
             reference_cache[cache_key] = ref_df[reference_column].tolist()
-            logger.debug(
-                f"Cached {len(reference_cache[cache_key])} values from {reference_file}"
-            )
+            logger.debug(f"Cached {len(reference_cache[cache_key])} values from {reference_file}")
 
         # Randomly select a value from the reference data
         reference_values = reference_cache[cache_key]
@@ -381,4 +379,3 @@ def _generate_value(
     else:
         # Default fallback
         return fake.word()
-

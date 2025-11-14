@@ -6,9 +6,6 @@ and has expected statistical properties.
 
 import re
 from datetime import datetime
-from pathlib import Path
-
-import pytest
 
 from data_generation.core.generator import generate_data
 
@@ -54,9 +51,7 @@ class TestNumericRangeValidation:
 
     def test_percentage_custom_range(self):
         """Test percentage with custom range."""
-        schema = [
-            {"name": "growth", "type": "percentage", "config": {"min": -20.0, "max": 50.0}}
-        ]
+        schema = [{"name": "growth", "type": "percentage", "config": {"min": -20.0, "max": 50.0}}]
         data = generate_data(schema, 500)
 
         values = [row["growth"] for row in data]
@@ -114,9 +109,7 @@ class TestDistributionProperties:
         from collections import Counter
 
         counts = Counter(values)
-        assert all(
-            count >= 10 for count in counts.values()
-        ), f"Some categories too rare: {counts}"
+        assert all(count >= 10 for count in counts.values()), f"Some categories too rare: {counts}"
 
     def test_bool_distribution(self):
         """Test bool values have both True and False."""
@@ -144,9 +137,7 @@ class TestCategoryValidation:
         data = generate_data(schema, 500)
 
         values = [row["status"] for row in data]
-        assert all(
-            v in categories for v in values
-        ), "Some category values not in allowed list"
+        assert all(v in categories for v in values), "Some category values not in allowed list"
 
     def test_single_category(self):
         """Test category with only one option."""
@@ -179,9 +170,9 @@ class TestDateTimeValidation:
         data = generate_data(schema, 500)
 
         dates = [row["date"] for row in data]
-        assert all(
-            start.date() <= d <= end.date() for d in dates
-        ), "Some dates outside configured range"
+        assert all(start.date() <= d <= end.date() for d in dates), (
+            "Some dates outside configured range"
+        )
 
     def test_datetime_range_validation(self):
         """Test all datetimes fall within configured range."""
@@ -197,9 +188,9 @@ class TestDateTimeValidation:
         data = generate_data(schema, 500)
 
         timestamps = [row["timestamp"] for row in data]
-        assert all(
-            start <= dt <= end for dt in timestamps
-        ), "Some datetimes outside configured range"
+        assert all(start <= dt <= end for dt in timestamps), (
+            "Some datetimes outside configured range"
+        )
 
     def test_date_default_range(self):
         """Test date generation with default range (last year)."""
@@ -236,9 +227,7 @@ class TestFormatValidation:
         uuid_pattern = re.compile(r"^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$")
 
         for row in data:
-            assert uuid_pattern.match(
-                row["id"]
-            ), f"UUID {row['id']} doesn't match expected format"
+            assert uuid_pattern.match(row["id"]), f"UUID {row['id']} doesn't match expected format"
 
     def test_email_format(self):
         """Test email format contains @ and domain."""
@@ -265,8 +254,9 @@ class TestFormatValidation:
         data = generate_data(schema, 100)
 
         for row in data:
-            assert len(row["description"]) <= 200, f"Text exceeds 200 chars: {len(row['description'])}"
-            assert len(row["description"]) > 0, "Text is empty"
+            desc_len = len(row["description"])
+            assert desc_len <= 200, f"Text exceeds 200 chars: {desc_len}"
+            assert desc_len > 0, "Text is empty"
 
 
 class TestUniquenessValidation:
@@ -320,9 +310,9 @@ class TestReferenceIntegrity:
         valid_user_ids = {"1", "2", "3"}  # CSV reads as strings
         user_ids = [str(row["user_id"]) for row in data]
 
-        assert all(
-            uid in valid_user_ids for uid in user_ids
-        ), "Some reference values not in parent table"
+        assert all(uid in valid_user_ids for uid in user_ids), (
+            "Some reference values not in parent table"
+        )
 
     def test_reference_distribution(self, tmp_path):
         """Test reference values are distributed across parent values."""
@@ -340,12 +330,10 @@ class TestReferenceIntegrity:
         ]
         data = generate_data(schema, 500)
 
-        product_ids_used = set(str(row["product_id"]) for row in data)
+        product_ids_used = {str(row["product_id"]) for row in data}
 
         # Should use at least 70% of available parent values
-        assert (
-            len(product_ids_used) >= 7
-        ), f"Only {len(product_ids_used)} of 10 parent values used"
+        assert len(product_ids_used) >= 7, f"Only {len(product_ids_used)} of 10 parent values used"
 
     def test_multiple_references_to_same_table(self, tmp_path):
         """Test multiple reference fields to the same parent table."""

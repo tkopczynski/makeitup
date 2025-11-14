@@ -1,7 +1,6 @@
 """LangChain tool for data generation."""
 
 import logging
-from pathlib import Path
 
 import pandas as pd
 import yaml
@@ -76,9 +75,7 @@ def generate_data_tool(
         # Write to file in specified format
         output_path = write_dataframe(df, output_file, output_format)
 
-        logger.info(
-            f"Successfully generated {num_rows} rows and saved to {output_path}"
-        )
+        logger.info(f"Successfully generated {num_rows} rows and saved to {output_path}")
 
         return (
             f"Successfully generated {num_rows} rows and saved to {output_path}\n"

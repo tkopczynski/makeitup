@@ -9,11 +9,11 @@ Supports two generation modes:
 2. probabilistic: Binary classification with weighted feature influence
 """
 
-from typing import Any, Dict
 import random
+from typing import Any
 
 
-def generate_target_value(row: Dict[str, Any], column_config: Dict) -> Any:
+def generate_target_value(row: dict[str, Any], column_config: dict) -> Any:
     """
     Generate a target value based on feature values in the row.
 
@@ -38,9 +38,7 @@ def generate_target_value(row: Dict[str, Any], column_config: Dict) -> Any:
         raise ValueError(f"Unknown generation_mode: {generation_mode}")
 
 
-def _generate_rule_based_target(
-    row: Dict[str, Any], config: Dict, target_type: str
-) -> Any:
+def _generate_rule_based_target(row: dict[str, Any], config: dict, target_type: str) -> Any:
     """
     Generate target using rule-based approach with simple threshold rules.
 
@@ -95,7 +93,7 @@ def _generate_rule_based_target(
         raise NotImplementedError("Only bool targets supported in V1")
 
 
-def _evaluate_condition(condition: Dict[str, Any], row: Dict[str, Any]) -> bool:
+def _evaluate_condition(condition: dict[str, Any], row: dict[str, Any]) -> bool:
     """
     Evaluate a simple threshold condition.
 
@@ -109,9 +107,12 @@ def _evaluate_condition(condition: Dict[str, Any], row: Dict[str, Any]) -> bool:
     Supported operators: >, <, >=, <=, ==, !=
 
     Examples:
-        >>> _evaluate_condition({"feature": "amount", "operator": ">", "value": 1000}, {"amount": 1500})
+        >>> condition = {"feature": "amount", "operator": ">", "value": 1000}
+        >>> _evaluate_condition(condition, {"amount": 1500})
         True
-        >>> _evaluate_condition({"feature": "hour", "operator": ">=", "value": 22}, {"hour": 23})
+        >>> _evaluate_condition(
+        ...     {"feature": "hour", "operator": ">=", "value": 22}, {"hour": 23}
+        ... )
         True
         >>> _evaluate_condition({"feature": "missing", "operator": ">", "value": 10}, {"x": 5})
         False
@@ -148,9 +149,7 @@ def _evaluate_condition(condition: Dict[str, Any], row: Dict[str, Any]) -> bool:
         return False
 
 
-def _generate_probabilistic_target(
-    row: Dict[str, Any], config: Dict, target_type: str
-) -> Any:
+def _generate_probabilistic_target(row: dict[str, Any], config: dict, target_type: str) -> Any:
     """
     Generate target using probabilistic feature weighting.
 

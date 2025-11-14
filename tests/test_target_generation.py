@@ -1,7 +1,5 @@
 """Tests for target variable generation."""
 
-import statistics
-
 import pytest
 
 from data_generation.core.generator import generate_data
@@ -26,7 +24,7 @@ class TestRuleBasedTargets:
                                 "conditions": [
                                     {"feature": "amount", "operator": ">", "value": 5000}
                                 ],
-                                "probability": 0.9
+                                "probability": 0.9,
                             }
                         ],
                         "default_probability": 0.05,
@@ -38,9 +36,7 @@ class TestRuleBasedTargets:
         data = generate_data(schema, 1000)
 
         # Count fraud for high-value transactions
-        high_value_fraud = sum(
-            1 for row in data if row["amount"] > 5000 and row["is_fraud"]
-        )
+        high_value_fraud = sum(1 for row in data if row["amount"] > 5000 and row["is_fraud"])
         high_value_total = sum(1 for row in data if row["amount"] > 5000)
 
         if high_value_total > 0:
@@ -63,7 +59,7 @@ class TestRuleBasedTargets:
                                 "conditions": [
                                     {"feature": "amount", "operator": ">", "value": 5000}
                                 ],
-                                "probability": 0.9
+                                "probability": 0.9,
                             }
                         ],
                         "default_probability": 0.1,
@@ -96,9 +92,9 @@ class TestRuleBasedTargets:
                             {
                                 "conditions": [
                                     {"feature": "amount", "operator": ">", "value": 5000},
-                                    {"feature": "hour", "operator": ">=", "value": 22}
+                                    {"feature": "hour", "operator": ">=", "value": 22},
                                 ],
-                                "probability": 0.9
+                                "probability": 0.9,
                             }
                         ],
                         "default_probability": 0.05,
@@ -113,13 +109,17 @@ class TestRuleBasedTargets:
         matching_rows = [row for row in data if row["amount"] > 5000 and row["hour"] >= 22]
         if len(matching_rows) > 10:
             fraud_rate = sum(1 for row in matching_rows if row["is_fraud"]) / len(matching_rows)
-            assert fraud_rate > 0.7, f"Expected high fraud rate for matching conditions, got {fraud_rate:.2%}"
+            assert fraud_rate > 0.7, (
+                f"Expected high fraud rate for matching conditions, got {fraud_rate:.2%}"
+            )
 
         # Check non-matching rows use default
         non_matching = [row for row in data if row["amount"] <= 5000 or row["hour"] < 22]
         if len(non_matching) > 100:
             fraud_rate = sum(1 for row in non_matching if row["is_fraud"]) / len(non_matching)
-            assert fraud_rate < 0.15, f"Expected low fraud rate for non-matching, got {fraud_rate:.2%}"
+            assert fraud_rate < 0.15, (
+                f"Expected low fraud rate for non-matching, got {fraud_rate:.2%}"
+            )
 
     def test_rule_based_multiple_rules_priority(self):
         """Test that first matching rule wins."""
@@ -136,16 +136,16 @@ class TestRuleBasedTargets:
                             {
                                 "conditions": [
                                     {"feature": "amount", "operator": ">", "value": 5000},
-                                    {"feature": "hour", "operator": ">=", "value": 22}
+                                    {"feature": "hour", "operator": ">=", "value": 22},
                                 ],
-                                "probability": 0.9
+                                "probability": 0.9,
                             },
                             {
                                 "conditions": [
                                     {"feature": "amount", "operator": ">", "value": 5000}
                                 ],
-                                "probability": 0.6
-                            }
+                                "probability": 0.6,
+                            },
                         ],
                         "default_probability": 0.05,
                     }
@@ -158,14 +158,20 @@ class TestRuleBasedTargets:
         # First rule should match (amount > 5000 AND hour >= 22) → 90%
         first_rule_matches = [row for row in data if row["amount"] > 5000 and row["hour"] >= 22]
         if len(first_rule_matches) > 10:
-            fraud_rate = sum(1 for row in first_rule_matches if row["is_fraud"]) / len(first_rule_matches)
+            fraud_rate = sum(1 for row in first_rule_matches if row["is_fraud"]) / len(
+                first_rule_matches
+            )
             assert fraud_rate > 0.7, "First rule should have ~90% fraud rate"
 
         # Second rule matches (amount > 5000 but hour < 22) → 60%
         second_rule_matches = [row for row in data if row["amount"] > 5000 and row["hour"] < 22]
         if len(second_rule_matches) > 10:
-            fraud_rate = sum(1 for row in second_rule_matches if row["is_fraud"]) / len(second_rule_matches)
-            assert 0.4 <= fraud_rate <= 0.8, f"Second rule should have ~60% fraud rate, got {fraud_rate:.2%}"
+            fraud_rate = sum(1 for row in second_rule_matches if row["is_fraud"]) / len(
+                second_rule_matches
+            )
+            assert 0.4 <= fraud_rate <= 0.8, (
+                f"Second rule should have ~60% fraud rate, got {fraud_rate:.2%}"
+            )
 
     def test_rule_based_operators(self):
         """Test all supported operators."""
@@ -180,7 +186,7 @@ class TestRuleBasedTargets:
                         "rules": [
                             {
                                 "conditions": [{"feature": "score", "operator": ">", "value": 80}],
-                                "probability": 1.0
+                                "probability": 1.0,
                             }
                         ],
                         "default_probability": 0.0,
@@ -196,7 +202,7 @@ class TestRuleBasedTargets:
                         "rules": [
                             {
                                 "conditions": [{"feature": "score", "operator": ">=", "value": 60}],
-                                "probability": 1.0
+                                "probability": 1.0,
                             }
                         ],
                         "default_probability": 0.0,
@@ -236,7 +242,7 @@ class TestRuleBasedTargets:
                                 "conditions": [
                                     {"feature": "nonexistent_field", "operator": ">", "value": 100}
                                 ],
-                                "probability": 1.0
+                                "probability": 1.0,
                             }
                         ],
                         "default_probability": 0.1,
@@ -288,7 +294,9 @@ class TestProbabilisticTargets:
             low_rate = low_score_pass / low_score_total
 
             # High scores should have significantly higher pass rate
-            assert high_rate > low_rate + 0.3, f"High rate {high_rate:.2%} should exceed low rate {low_rate:.2%} by >30%"
+            assert high_rate > low_rate + 0.3, (
+                f"High rate {high_rate:.2%} should exceed low rate {low_rate:.2%} by >30%"
+            )
 
     def test_probabilistic_negative_weight(self):
         """Test negative feature weight decreases probability."""
@@ -322,7 +330,10 @@ class TestProbabilisticTargets:
             new_rate = new_churn / new_total
             veteran_rate = veteran_churn / veteran_total
 
-            assert new_rate > veteran_rate + 0.2, f"New customers ({new_rate:.2%}) should churn more than veterans ({veteran_rate:.2%})"
+            assert new_rate > veteran_rate + 0.2, (
+                f"New customers ({new_rate:.2%}) should churn more than "
+                f"veterans ({veteran_rate:.2%})"
+            )
 
     def test_probabilistic_multiple_weights(self):
         """Test combining multiple feature weights."""
@@ -338,7 +349,7 @@ class TestProbabilisticTargets:
                         "base_probability": 0.25,
                         "feature_weights": {
                             "tenure_months": -0.005,  # -0.5% per month
-                            "support_tickets": 0.03,   # +3% per ticket
+                            "support_tickets": 0.03,  # +3% per ticket
                         },
                         "min_probability": 0.05,
                         "max_probability": 0.90,
@@ -351,21 +362,23 @@ class TestProbabilisticTargets:
 
         # New customer with many tickets → high churn
         high_risk = [
-            row for row in data
-            if row["tenure_months"] <= 5 and row["support_tickets"] >= 10
+            row for row in data if row["tenure_months"] <= 5 and row["support_tickets"] >= 10
         ]
         if len(high_risk) > 5:
             churn_rate = sum(1 for row in high_risk if row["will_churn"]) / len(high_risk)
-            assert churn_rate > 0.5, f"High-risk customers should have high churn rate, got {churn_rate:.2%}"
+            assert churn_rate > 0.5, (
+                f"High-risk customers should have high churn rate, got {churn_rate:.2%}"
+            )
 
         # Long-term customer with few tickets → low churn
         low_risk = [
-            row for row in data
-            if row["tenure_months"] >= 50 and row["support_tickets"] <= 2
+            row for row in data if row["tenure_months"] >= 50 and row["support_tickets"] <= 2
         ]
         if len(low_risk) > 5:
             churn_rate = sum(1 for row in low_risk if row["will_churn"]) / len(low_risk)
-            assert churn_rate < 0.3, f"Low-risk customers should have low churn rate, got {churn_rate:.2%}"
+            assert churn_rate < 0.3, (
+                f"Low-risk customers should have low churn rate, got {churn_rate:.2%}"
+            )
 
     def test_probabilistic_clamping(self):
         """Test min/max probability clamping."""
@@ -409,7 +422,7 @@ class TestProbabilisticTargets:
                         "base_probability": 0.5,
                         "feature_weights": {
                             "score": 0.01,
-                            "nonexistent": 0.5  # Should be ignored
+                            "nonexistent": 0.5,  # Should be ignored
                         },
                         "min_probability": 0.0,
                         "max_probability": 1.0,
@@ -443,7 +456,7 @@ class TestTargetWithQualityDegradation:
                         "rules": [
                             {
                                 "conditions": [{"feature": "x", "operator": ">", "value": 5}],
-                                "probability": 1.0
+                                "probability": 1.0,
                             }
                         ],
                         "default_probability": 0.0,
@@ -508,9 +521,7 @@ class TestTargetValidation:
             {
                 "name": "target",
                 "type": "bool",
-                "config": {
-                    "target_config": {"generation_mode": "invalid_mode"}
-                },
+                "config": {"target_config": {"generation_mode": "invalid_mode"}},
             }
         ]
 
@@ -523,9 +534,7 @@ class TestTargetValidation:
             {
                 "name": "target",
                 "type": "bool",
-                "config": {
-                    "target_config": {"generation_mode": "rule_based"}
-                },
+                "config": {"target_config": {"generation_mode": "rule_based"}},
             }
         ]
 
@@ -542,10 +551,10 @@ class TestTargetValidation:
                 "config": {
                     "target_config": {
                         "generation_mode": "rule_based",
-                        "rules": [{"probability": 0.5}]  # Missing conditions
+                        "rules": [{"probability": 0.5}],  # Missing conditions
                     }
                 },
-            }
+            },
         ]
 
         with pytest.raises(SchemaValidationError, match="missing 'conditions'"):
@@ -563,15 +572,13 @@ class TestTargetValidation:
                         "generation_mode": "rule_based",
                         "rules": [
                             {
-                                "conditions": [
-                                    {"feature": "x", "operator": "INVALID", "value": 5}
-                                ],
-                                "probability": 0.5
+                                "conditions": [{"feature": "x", "operator": "INVALID", "value": 5}],
+                                "probability": 0.5,
                             }
-                        ]
+                        ],
                     }
                 },
-            }
+            },
         ]
 
         with pytest.raises(SchemaValidationError, match="invalid operator"):
@@ -583,9 +590,7 @@ class TestTargetValidation:
             {
                 "name": "target",
                 "type": "bool",
-                "config": {
-                    "target_config": {"generation_mode": "probabilistic"}
-                },
+                "config": {"target_config": {"generation_mode": "probabilistic"}},
             }
         ]
 
@@ -605,12 +610,12 @@ class TestTargetValidation:
                         "rules": [
                             {
                                 "conditions": [{"feature": "x", "operator": ">", "value": 5}],
-                                "probability": 1.5  # Invalid
+                                "probability": 1.5,  # Invalid
                             }
-                        ]
+                        ],
                     }
                 },
-            }
+            },
         ]
 
         with pytest.raises(SchemaValidationError, match="probability must be between 0 and 1"):
@@ -635,12 +640,12 @@ class TestTargetOrdering:
                             {
                                 "conditions": [
                                     {"feature": "feature1", "operator": ">", "value": 5},
-                                    {"feature": "feature2", "operator": ">", "value": 5}
+                                    {"feature": "feature2", "operator": ">", "value": 5},
                                 ],
-                                "probability": 1.0
+                                "probability": 1.0,
                             }
                         ],
-                        "default_probability": 0.0
+                        "default_probability": 0.0,
                     }
                 },
             },
@@ -672,9 +677,9 @@ class TestSingleModeConstraint:
                         "rules": [
                             {
                                 "conditions": [{"feature": "x", "operator": ">", "value": 5}],
-                                "probability": 1.0
+                                "probability": 1.0,
                             }
-                        ]
+                        ],
                     }
                 },
             },
@@ -684,7 +689,7 @@ class TestSingleModeConstraint:
                 "config": {
                     "target_config": {
                         "generation_mode": "probabilistic",
-                        "feature_weights": {"x": 0.1}
+                        "feature_weights": {"x": 0.1},
                     }
                 },
             },
@@ -703,7 +708,7 @@ class TestSingleModeConstraint:
                 "config": {
                     "target_config": {
                         "generation_mode": "probabilistic",
-                        "feature_weights": {"x": 0.1}
+                        "feature_weights": {"x": 0.1},
                     }
                 },
             },
@@ -713,7 +718,7 @@ class TestSingleModeConstraint:
                 "config": {
                     "target_config": {
                         "generation_mode": "probabilistic",
-                        "feature_weights": {"x": -0.05}
+                        "feature_weights": {"x": -0.05},
                     }
                 },
             },

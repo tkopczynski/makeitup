@@ -1,7 +1,6 @@
 """Tests for output format functionality."""
 
 import json
-from pathlib import Path
 
 import pandas as pd
 import pytest

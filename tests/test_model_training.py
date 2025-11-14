@@ -6,8 +6,6 @@ and achieve reasonable performance, validating the data is truly useful for ML.
 Tests require scikit-learn. Install with: pip install scikit-learn
 """
 
-import statistics
-
 import pytest
 
 from data_generation.core.generator import generate_data
@@ -16,7 +14,13 @@ from data_generation.core.generator import generate_data
 try:
     from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
     from sklearn.linear_model import LinearRegression, LogisticRegression
-    from sklearn.metrics import accuracy_score, f1_score, mean_squared_error, r2_score, roc_auc_score
+    from sklearn.metrics import (
+        accuracy_score,
+        f1_score,
+        mean_squared_error,
+        r2_score,
+        roc_auc_score,
+    )
     from sklearn.model_selection import train_test_split
 
     SKLEARN_AVAILABLE = True
@@ -45,9 +49,7 @@ class TestBinaryClassificationModels:
         y = [int(row["target"]) for row in data]
 
         # Split data
-        X_train, X_test, y_train, y_test = train_test_split(
-            X, y, test_size=0.3, random_state=42
-        )
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
         # Train model
         model = LogisticRegression(random_state=42, max_iter=1000)
@@ -76,9 +78,7 @@ class TestBinaryClassificationModels:
         y = [int(row["is_positive"]) for row in data]
 
         # Split
-        X_train, X_test, y_train, y_test = train_test_split(
-            X, y, test_size=0.25, random_state=42
-        )
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)
 
         # Train
         model = RandomForestClassifier(n_estimators=50, random_state=42, max_depth=5)
@@ -105,9 +105,7 @@ class TestBinaryClassificationModels:
         X = [[row["feature1"], row["feature2"]] for row in data]
         y = [int(row["target"]) for row in data]
 
-        X_train, X_test, y_train, y_test = train_test_split(
-            X, y, test_size=0.3, random_state=42
-        )
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
         model = LogisticRegression(random_state=42)
         model.fit(X_train, y_train)
@@ -132,9 +130,7 @@ class TestBinaryClassificationModels:
         X = [[row["feature1"], row["feature2"], row["feature3"]] for row in data]
         y = [int(row["target"]) for row in data]
 
-        X_train, X_test, y_train, y_test = train_test_split(
-            X, y, test_size=0.3, random_state=42
-        )
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
         # Use a simple model to avoid overfitting
         model = LogisticRegression(random_state=42, max_iter=1000)
@@ -242,11 +238,10 @@ class TestMultiClassClassificationModels:
 
         # All classes should appear in predictions
         predicted_classes = set(y_pred)
-        expected_classes = {"A", "B", "C", "D"}
 
-        assert (
-            len(predicted_classes) >= 3
-        ), f"Only {len(predicted_classes)} classes predicted, expected 4"
+        assert len(predicted_classes) >= 3, (
+            f"Only {len(predicted_classes)} classes predicted, expected 4"
+        )
 
 
 class TestRegressionModels:
@@ -265,9 +260,7 @@ class TestRegressionModels:
         X = [[row["feature1"], row["feature2"], row["feature3"]] for row in data]
         y = [row["target"] for row in data]
 
-        X_train, X_test, y_train, y_test = train_test_split(
-            X, y, test_size=0.3, random_state=42
-        )
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
         model = LinearRegression()
         model.fit(X_train, y_train)
@@ -292,9 +285,7 @@ class TestRegressionModels:
         X = [[row["square_feet"], row["bedrooms"]] for row in data]
         y = [row["price"] for row in data]
 
-        X_train, X_test, y_train, y_test = train_test_split(
-            X, y, test_size=0.25, random_state=42
-        )
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)
 
         model = RandomForestRegressor(n_estimators=50, random_state=42, max_depth=5)
         model.fit(X_train, y_train)
@@ -323,9 +314,7 @@ class TestRegressionModels:
         X = [[row["feature1"]] for row in data]
         y = [row["target"] for row in data]
 
-        X_train, X_test, y_train, y_test = train_test_split(
-            X, y, test_size=0.3, random_state=42
-        )
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
         model = RandomForestRegressor(n_estimators=30, random_state=42)
         model.fit(X_train, y_train)
@@ -333,9 +322,9 @@ class TestRegressionModels:
         y_pred = model.predict(X_test)
 
         # Predictions should be in reasonable range (within 3x the target range)
-        assert all(
-            -200 <= pred <= 300 for pred in y_pred
-        ), "Some predictions far outside expected range"
+        assert all(-200 <= pred <= 300 for pred in y_pred), (
+            "Some predictions far outside expected range"
+        )
 
 
 class TestLearningCurves:
@@ -388,9 +377,7 @@ class TestLearningCurves:
         X = [[row["feature1"]] for row in data]
         y = [int(row["target"]) for row in data]
 
-        X_train, X_test, y_train, y_test = train_test_split(
-            X, y, test_size=0.3, random_state=42
-        )
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
         # Should complete without errors even on small data
         model = LogisticRegression(random_state=42)
@@ -435,9 +422,7 @@ class TestModelWithMessyData:
         X = [[row["feature1"], row["feature2"]] for row in clean_data]
         y = [int(row["target"]) for row in clean_data]
 
-        X_train, X_test, y_train, y_test = train_test_split(
-            X, y, test_size=0.3, random_state=42
-        )
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
         model = LogisticRegression(random_state=42)
         model.fit(X_train, y_train)
@@ -468,9 +453,7 @@ class TestModelWithMessyData:
         has_outliers = any(v < 1 or v > 100 for v in feature1_vals)
         assert has_outliers, "Expected some outliers in feature1"
 
-        X_train, X_test, y_train, y_test = train_test_split(
-            X, y, test_size=0.3, random_state=42
-        )
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
         # RandomForest should be robust to outliers
         model = RandomForestClassifier(n_estimators=50, random_state=42)
@@ -497,9 +480,7 @@ class TestModelPerformanceMetrics:
         X = [[row["feature1"], row["feature2"]] for row in data]
         y = [int(row["target"]) for row in data]
 
-        X_train, X_test, y_train, y_test = train_test_split(
-            X, y, test_size=0.3, random_state=42
-        )
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
         model = LogisticRegression(random_state=42)
         model.fit(X_train, y_train)
@@ -528,9 +509,7 @@ class TestModelPerformanceMetrics:
         X = [[row["feature1"]] for row in data]
         y = [row["target"] for row in data]
 
-        X_train, X_test, y_train, y_test = train_test_split(
-            X, y, test_size=0.3, random_state=42
-        )
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
         model = LinearRegression()
         model.fit(X_train, y_train)
