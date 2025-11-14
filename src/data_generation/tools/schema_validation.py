@@ -5,6 +5,7 @@ from typing import Any
 
 class SchemaValidationError(Exception):
     """Raised when schema validation fails."""
+
     pass
 
 
@@ -25,14 +26,35 @@ def validate_schema(schema: list[dict[str, Any]]) -> None:
         raise SchemaValidationError("Schema cannot be empty")
 
     valid_types = {
-        "int", "float", "date", "datetime", "category", "text", "email",
-        "phone", "name", "address", "company", "product", "uuid", "bool",
-        "currency", "percentage", "reference"
+        "int",
+        "float",
+        "date",
+        "datetime",
+        "category",
+        "text",
+        "email",
+        "phone",
+        "name",
+        "address",
+        "company",
+        "product",
+        "uuid",
+        "bool",
+        "currency",
+        "percentage",
+        "reference",
     }
 
     valid_text_types = {
-        "first_name", "last_name", "full_name", "street", "city",
-        "state", "zip", "country", "full"
+        "first_name",
+        "last_name",
+        "full_name",
+        "street",
+        "city",
+        "state",
+        "zip",
+        "country",
+        "full",
     }
 
     column_names = set()
@@ -131,11 +153,15 @@ def validate_quality_config(column_name: str, quality_config: Any) -> None:
         SchemaValidationError: If quality_config is invalid
     """
     if not isinstance(quality_config, dict):
-        raise SchemaValidationError(
-            f"Column '{column_name}': quality_config must be a dictionary"
-        )
+        raise SchemaValidationError(f"Column '{column_name}': quality_config must be a dictionary")
 
-    valid_keys = {"null_rate", "duplicate_rate", "similar_rate", "outlier_rate", "invalid_format_rate"}
+    valid_keys = {
+        "null_rate",
+        "duplicate_rate",
+        "similar_rate",
+        "outlier_rate",
+        "invalid_format_rate",
+    }
 
     for key, value in quality_config.items():
         if key not in valid_keys:
@@ -145,13 +171,15 @@ def validate_quality_config(column_name: str, quality_config: Any) -> None:
             )
 
         if not isinstance(value, (int, float)):
+            value_type = type(value).__name__
             raise SchemaValidationError(
-                f"Column '{column_name}': quality_config '{key}' must be a number, got {type(value).__name__}"
+                f"Column '{column_name}': quality_config '{key}' must be a number, got {value_type}"
             )
 
         if not 0 <= value <= 1:
             raise SchemaValidationError(
-                f"Column '{column_name}': quality_config '{key}' must be between 0 and 1, got {value}"
+                f"Column '{column_name}': quality_config '{key}' must be "
+                f"between 0 and 1, got {value}"
             )
 
 
@@ -169,9 +197,7 @@ def validate_target_config(column_config: dict[str, Any]) -> None:
     column_name = column_config["name"]
 
     if not isinstance(target_config, dict):
-        raise SchemaValidationError(
-            f"Column '{column_name}': target_config must be a dictionary"
-        )
+        raise SchemaValidationError(f"Column '{column_name}': target_config must be a dictionary")
 
     # Require generation_mode
     if "generation_mode" not in target_config:
@@ -191,15 +217,11 @@ def validate_target_config(column_config: dict[str, Any]) -> None:
     # Validate mode-specific requirements
     if mode == "rule_based":
         if "rules" not in target_config:
-            raise SchemaValidationError(
-                f"Column '{column_name}': rule_based mode requires 'rules'"
-            )
+            raise SchemaValidationError(f"Column '{column_name}': rule_based mode requires 'rules'")
 
         rules = target_config["rules"]
         if not isinstance(rules, list):
-            raise SchemaValidationError(
-                f"Column '{column_name}': 'rules' must be a list"
-            )
+            raise SchemaValidationError(f"Column '{column_name}': 'rules' must be a list")
 
         # Validate each rule
         for i, rule in enumerate(rules):
@@ -222,7 +244,8 @@ def validate_target_config(column_config: dict[str, Any]) -> None:
             prob = rule["probability"]
             if not isinstance(prob, (int, float)) or not (0 <= prob <= 1):
                 raise SchemaValidationError(
-                    f"Column '{column_name}': rule {i} probability must be between 0 and 1, got {prob}"
+                    f"Column '{column_name}': rule {i} probability must be "
+                    f"between 0 and 1, got {prob}"
                 )
 
             # Validate conditions list
@@ -258,9 +281,11 @@ def validate_target_config(column_config: dict[str, Any]) -> None:
                 valid_operators = {">", "<", ">=", "<=", "==", "!="}
                 operator = condition["operator"]
                 if operator not in valid_operators:
+                    valid_ops_str = ", ".join(sorted(valid_operators))
                     raise SchemaValidationError(
-                        f"Column '{column_name}': rule {i} condition {j} has invalid operator '{operator}'. "
-                        f"Must be one of: {', '.join(sorted(valid_operators))}"
+                        f"Column '{column_name}': rule {i} condition {j} has "
+                        f"invalid operator '{operator}'. "
+                        f"Must be one of: {valid_ops_str}"
                     )
 
         # Validate default_probability if present
@@ -268,7 +293,8 @@ def validate_target_config(column_config: dict[str, Any]) -> None:
             default_prob = target_config["default_probability"]
             if not isinstance(default_prob, (int, float)) or not (0 <= default_prob <= 1):
                 raise SchemaValidationError(
-                    f"Column '{column_name}': default_probability must be between 0 and 1, got {default_prob}"
+                    f"Column '{column_name}': default_probability must be "
+                    f"between 0 and 1, got {default_prob}"
                 )
 
     elif mode == "probabilistic":
@@ -287,8 +313,10 @@ def validate_target_config(column_config: dict[str, Any]) -> None:
         # Validate all weights are numeric
         for feature_name, weight in feature_weights.items():
             if not isinstance(weight, (int, float)):
+                weight_type = type(weight).__name__
                 raise SchemaValidationError(
-                    f"Column '{column_name}': weight for feature '{feature_name}' must be a number, got {type(weight).__name__}"
+                    f"Column '{column_name}': weight for feature "
+                    f"'{feature_name}' must be a number, got {weight_type}"
                 )
 
         # Validate probability bounds if present
@@ -296,21 +324,24 @@ def validate_target_config(column_config: dict[str, Any]) -> None:
             base_prob = target_config["base_probability"]
             if not isinstance(base_prob, (int, float)) or not (0 <= base_prob <= 1):
                 raise SchemaValidationError(
-                    f"Column '{column_name}': base_probability must be between 0 and 1, got {base_prob}"
+                    f"Column '{column_name}': base_probability must be "
+                    f"between 0 and 1, got {base_prob}"
                 )
 
         if "min_probability" in target_config:
             min_prob = target_config["min_probability"]
             if not isinstance(min_prob, (int, float)) or not (0 <= min_prob <= 1):
                 raise SchemaValidationError(
-                    f"Column '{column_name}': min_probability must be between 0 and 1, got {min_prob}"
+                    f"Column '{column_name}': min_probability must be "
+                    f"between 0 and 1, got {min_prob}"
                 )
 
         if "max_probability" in target_config:
             max_prob = target_config["max_probability"]
             if not isinstance(max_prob, (int, float)) or not (0 <= max_prob <= 1):
                 raise SchemaValidationError(
-                    f"Column '{column_name}': max_probability must be between 0 and 1, got {max_prob}"
+                    f"Column '{column_name}': max_probability must be "
+                    f"between 0 and 1, got {max_prob}"
                 )
 
 
@@ -334,7 +365,7 @@ def validate_single_target_mode(schema: list[dict[str, Any]]) -> None:
 
     if len(target_modes) > 1:
         # Check if all modes are the same
-        unique_modes = set(mode for _, mode in target_modes)
+        unique_modes = {mode for _, mode in target_modes}
         if len(unique_modes) > 1:
             mode_details = ", ".join(f"{name}={mode}" for name, mode in target_modes)
             raise SchemaValidationError(

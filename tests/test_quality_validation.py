@@ -101,7 +101,9 @@ class TestNullRateValidation:
         null_rate = null_count / len(data)
 
         # Allow ±3% tolerance
-        assert 0.22 <= null_rate <= 0.28, f"Null rate {null_rate} outside expected range 0.25 ± 0.03"
+        assert 0.22 <= null_rate <= 0.28, (
+            f"Null rate {null_rate} outside expected range 0.25 ± 0.03"
+        )
 
     def test_null_rate_zero(self):
         """Test zero null rate produces no nulls."""
@@ -164,9 +166,9 @@ class TestDuplicateRateValidation:
         duplicate_rate = duplicate_count / len(data)
 
         # Allow ±5% tolerance (duplicates are probabilistic)
-        assert (
-            0.05 <= duplicate_rate <= 0.15
-        ), f"Duplicate rate {duplicate_rate} outside expected range 0.1 ± 0.05"
+        assert 0.05 <= duplicate_rate <= 0.15, (
+            f"Duplicate rate {duplicate_rate} outside expected range 0.1 ± 0.05"
+        )
 
     def test_duplicate_rate_with_nulls(self):
         """Test duplicates work correctly with nulls present."""
@@ -268,9 +270,9 @@ class TestOutlierRateValidation:
         outlier_rate = len(outliers) / len(values)
 
         # Allow ±5% tolerance
-        assert (
-            0.05 <= outlier_rate <= 0.15
-        ), f"Outlier rate {outlier_rate} outside expected range 0.1 ± 0.05"
+        assert 0.05 <= outlier_rate <= 0.15, (
+            f"Outlier rate {outlier_rate} outside expected range 0.1 ± 0.05"
+        )
 
     def test_outlier_rate_currency(self):
         """Test outlier_rate affects currency fields."""
@@ -311,9 +313,9 @@ class TestFormatIssueValidation:
         malformed_rate = len(malformed) / len(emails)
 
         # Allow ±10% tolerance (format issues are specific transformations)
-        assert (
-            0.10 <= malformed_rate <= 0.30
-        ), f"Malformed rate {malformed_rate} outside expected range 0.2 ± 0.1"
+        assert 0.10 <= malformed_rate <= 0.30, (
+            f"Malformed rate {malformed_rate} outside expected range 0.2 ± 0.1"
+        )
 
 
 class TestCombinedQualityIssues:

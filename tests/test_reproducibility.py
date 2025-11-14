@@ -7,7 +7,6 @@ from data_generation.core.generator import (
     generate_data_with_seed,
     generate_reproducibility_code,
 )
-from data_generation.core.quality import QualityConfig
 
 
 def test_same_seed_produces_identical_data():

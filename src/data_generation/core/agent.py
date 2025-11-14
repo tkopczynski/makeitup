@@ -90,9 +90,7 @@ table FIRST (e.g., users.csv), THEN the child table (e.g., transactions.csv)
     return agent
 
 
-def run_agent(
-    user_request: str, seed: int | None = None, output_format: str | None = None
-) -> str:
+def run_agent(user_request: str, seed: int | None = None, output_format: str | None = None) -> str:
     """
     Run the LangGraph ReAct agent with a user request.
 
@@ -107,12 +105,13 @@ def run_agent(
     agent = create_data_generation_agent(seed, output_format)
 
     try:
-        log_parts = [f"Processing request"]
+        log_parts = ["Processing request"]
         if seed is not None:
             log_parts.append(f"reproducibility code {seed}")
         if output_format is not None:
             log_parts.append(f"format {output_format}")
-        logger.info(f"{log_parts[0]}{' with ' + ', '.join(log_parts[1:]) if len(log_parts) > 1 else ''}: {user_request}")
+        extra_parts = f" with {', '.join(log_parts[1:])}" if len(log_parts) > 1 else ""
+        logger.info(f"{log_parts[0]}{extra_parts}: {user_request}")
 
         result = agent.invoke({"messages": [("user", user_request)]})
 

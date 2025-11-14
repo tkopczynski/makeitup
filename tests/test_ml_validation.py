@@ -11,8 +11,6 @@ These tests verify that generated data is suitable for machine learning:
 import statistics
 from collections import Counter
 
-import pytest
-
 from data_generation.core.generator import generate_data
 
 
@@ -33,9 +31,9 @@ class TestClassBalanceValidation:
         positive_rate = positive_count / len(data)
 
         # Should be reasonably balanced (30-70%)
-        assert (
-            0.3 <= positive_rate <= 0.7
-        ), f"Class balance {positive_rate} outside reasonable range"
+        assert 0.3 <= positive_rate <= 0.7, (
+            f"Class balance {positive_rate} outside reasonable range"
+        )
 
     def test_multiclass_classification_balance(self):
         """Test multi-class classification has all classes represented."""
@@ -77,9 +75,9 @@ class TestClassBalanceValidation:
         minority_count = min(positive_count, negative_count)
 
         # Minority class should have at least 50 samples for meaningful training
-        assert (
-            minority_count >= 50
-        ), f"Minority class has only {minority_count} samples, need at least 50"
+        assert minority_count >= 50, (
+            f"Minority class has only {minority_count} samples, need at least 50"
+        )
 
     def test_stratified_split_feasibility(self):
         """Test that stratified splitting is feasible."""
@@ -97,9 +95,9 @@ class TestClassBalanceValidation:
         # Minimum 10 samples in test set (30% of 300 = 90 total test samples)
         for cls, count in class_counts.items():
             expected_test_samples = count * 0.3
-            assert (
-                expected_test_samples >= 5
-            ), f"Class {cls} would have only {expected_test_samples:.0f} test samples"
+            assert expected_test_samples >= 5, (
+                f"Class {cls} would have only {expected_test_samples:.0f} test samples"
+            )
 
 
 class TestFeatureCorrelation:
@@ -191,9 +189,9 @@ class TestFeatureCorrelation:
         unique_categories = set(categories)
 
         # Should use most of the available categories
-        assert (
-            len(unique_categories) >= 4
-        ), f"Only {len(unique_categories)} unique categories out of 5"
+        assert len(unique_categories) >= 4, (
+            f"Only {len(unique_categories)} unique categories out of 5"
+        )
 
 
 class TestDataLeakageDetection:
@@ -271,9 +269,7 @@ class TestDataSplittingValidation:
         duplicate_rate = 1 - (unique_rows / len(data))
 
         # Allow some duplicates due to randomness, but not too many
-        assert (
-            duplicate_rate < 0.1
-        ), f"Too many duplicate rows: {duplicate_rate:.1%} (>10%)"
+        assert duplicate_rate < 0.1, f"Too many duplicate rows: {duplicate_rate:.1%} (>10%)"
 
     def test_reference_integrity_for_splitting(self):
         """Test that reference fields maintain integrity when splitting."""
@@ -303,9 +299,7 @@ class TestDataSplittingValidation:
             user_ids = [str(row["user_id"]) for row in data]
             valid_ids = {"1", "2", "3"}
 
-            assert all(
-                uid in valid_ids for uid in user_ids
-            ), "Some reference values are invalid"
+            assert all(uid in valid_ids for uid in user_ids), "Some reference values are invalid"
 
 
 class TestFeatureQuality:
@@ -430,7 +424,7 @@ class TestMLReadinessScenarios:
         assert all(18 <= age <= 80 for age in ages), "Ages outside expected range"
 
         # Check education diversity
-        educations = set(row["education"] for row in data)
+        educations = {row["education"] for row in data}
         assert len(educations) >= 3, "Education categories too limited"
 
     def test_regression_dataset(self):

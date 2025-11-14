@@ -30,7 +30,14 @@ class QualityConfig:
 
     def __post_init__(self):
         """Validate that all rates are between 0 and 1."""
-        for field_name in ["null_rate", "duplicate_rate", "similar_rate", "outlier_rate", "invalid_format_rate"]:
+        field_names = [
+            "null_rate",
+            "duplicate_rate",
+            "similar_rate",
+            "outlier_rate",
+            "invalid_format_rate",
+        ]
+        for field_name in field_names:
             value = getattr(self, field_name)
             if not isinstance(value, (int, float)) or not 0 <= value <= 1:
                 raise ValueError(f"{field_name} must be between 0 and 1, got {value}")
