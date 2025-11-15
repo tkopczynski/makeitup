@@ -431,7 +431,7 @@ $ data-generation "50 products with names and prices" --seed 111222
 
 **Reproducible quality degradation:**
 ```bash
-$ data-generation "1000 users with emails (10% null, 5% duplicates)" --seed 777888
+$ data-generation "1000 users with names and emails (10% null, 5% duplicates)" --seed 777888
 # Same null positions and duplicate patterns every time
 ```
 
