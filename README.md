@@ -300,8 +300,8 @@ data-generation "Generate 100 customers saved to customers.csv,
 **4. Use seeds for reproducible experiments:**
 ```bash
 # Same seed = same data across different formats
-data-generation "1000 records" --seed 123456 --format csv
-data-generation "1000 records" --seed 123456 --format json  # Identical data
+data-generation "1000 users with names, emails, and registration dates" --seed 123456 --format csv
+data-generation "1000 users with names, emails, and registration dates" --seed 123456 --format json  # Identical data
 ```
 
 **5. Format detection is smart:**
