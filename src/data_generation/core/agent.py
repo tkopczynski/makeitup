@@ -50,8 +50,9 @@ FORMAT OVERRIDE:
     else:
         format_instruction = """
 FORMAT DETECTION:
-- Detect the desired format from the user's request (csv, json, parquet, xlsx)
-- Look for phrases like "as JSON", "in parquet format", "save as excel", "to xlsx"
+- Detect the desired format from the user's request (csv, json, parquet, xlsx, excel)
+- Look for phrases like "as JSON", "in parquet format", "save as excel", "to xlsx", "as excel"
+- 'excel' is an alias for 'xlsx' - either can be used
 - If no format is specified, use 'csv' as default
 - Pass the detected format to generate_data_tool as the output_format parameter"""
 

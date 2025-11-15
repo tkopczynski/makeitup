@@ -8,7 +8,7 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 # Supported output formats
-SUPPORTED_FORMATS = ["csv", "json", "parquet", "xlsx"]
+SUPPORTED_FORMATS = ["csv", "json", "parquet", "xlsx", "excel"]
 
 # Format to file extension mapping
 FORMAT_EXTENSIONS = {
@@ -16,6 +16,7 @@ FORMAT_EXTENSIONS = {
     "json": ".json",
     "parquet": ".parquet",
     "xlsx": ".xlsx",
+    "excel": ".xlsx",  # Alias for xlsx
 }
 
 
@@ -25,7 +26,7 @@ def adjust_file_extension(output_file: str, format: str) -> str:
 
     Args:
         output_file: Original output file path
-        format: Output format (csv, json, parquet, xlsx)
+        format: Output format (csv, json, parquet, xlsx, excel)
 
     Returns:
         File path with correct extension for the format
@@ -35,6 +36,8 @@ def adjust_file_extension(output_file: str, format: str) -> str:
         "data.json"
         >>> adjust_file_extension("output", "parquet")
         "output.parquet"
+        >>> adjust_file_extension("data.csv", "excel")
+        "data.xlsx"
     """
     path = Path(output_file)
     expected_extension = FORMAT_EXTENSIONS[format]
@@ -54,7 +57,8 @@ def write_dataframe(df: pd.DataFrame, output_file: str, format: str = "csv") -> 
     Args:
         df: pandas DataFrame to write
         output_file: Path to save the file
-        format: Output format (csv, json, parquet, xlsx)
+        format: Output format (csv, json, parquet, xlsx, excel)
+               'excel' is an alias for 'xlsx'
 
     Returns:
         Absolute Path to the written file
@@ -85,7 +89,7 @@ def write_dataframe(df: pd.DataFrame, output_file: str, format: str = "csv") -> 
             df.to_parquet(output_path, index=False, engine="pyarrow")
             logger.info(f"Wrote {len(df)} rows to Parquet: {output_path.absolute()}")
 
-        elif format == "xlsx":
+        elif format in ("xlsx", "excel"):
             df.to_excel(output_path, index=False, engine="openpyxl")
             logger.info(f"Wrote {len(df)} rows to Excel: {output_path.absolute()}")
 
