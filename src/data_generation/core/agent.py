@@ -113,7 +113,10 @@ def run_agent(user_request: str, seed: int | None = None, output_format: str | N
         extra_parts = f" with {', '.join(log_parts[1:])}" if len(log_parts) > 1 else ""
         logger.info(f"{log_parts[0]}{extra_parts}: {user_request}")
 
-        result = agent.invoke({"messages": [("user", user_request)]})
+        result = agent.invoke(
+            {"messages": [("user", user_request)]},
+            config={"recursion_limit": 15}
+        )
 
         # Extract the final message from the agent
         messages = result["messages"]

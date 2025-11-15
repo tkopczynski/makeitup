@@ -47,6 +47,7 @@ use target_config with the appropriate generation_mode:
 
 MODE 1: rule_based - For classification with explicit conditional rules
 Use when: Description mentions "if/when/rule", explicit conditions, or thresholds
+IMPORTANT: Use structured conditions (NOT string expressions)
 Example:
   - name: is_fraud
     type: bool
@@ -54,11 +55,23 @@ Example:
       target_config:
         generation_mode: "rule_based"
         rules:
-          - condition: "amount > 5000 and hour >= 22"
+          - conditions:
+              - feature: amount
+                operator: ">"
+                value: 5000
+              - feature: hour
+                operator: ">="
+                value: 22
             probability: 0.8
-          - condition: "num_transactions > 15"
+          - conditions:
+              - feature: num_transactions
+                operator: ">"
+                value: 15
             probability: 0.7
         default_probability: 0.05
+
+Supported operators: ">", "<", ">=", "<=", "==", "!="
+All conditions in a rule are evaluated with AND logic (all must be true)
 
 MODE 2: formula - For continuous targets with mathematical relationships
 Use when: Target is continuous (float/currency/int) with mathematical dependencies
