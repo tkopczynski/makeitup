@@ -36,6 +36,14 @@ class TestFormatExtensionAdjustment:
         result = adjust_file_extension("/path/to/data.csv", "parquet")
         assert result == "/path/to/data.parquet"
 
+    def test_adjust_extension_excel_alias(self):
+        result = adjust_file_extension("data.csv", "excel")
+        assert result == "data.xlsx"
+
+    def test_adjust_extension_excel_no_extension(self):
+        result = adjust_file_extension("data", "excel")
+        assert result == "data.xlsx"
+
 
 class TestFormatDetection:
     """Test format detection from filename."""
@@ -129,6 +137,31 @@ class TestWriteDataFrame:
         assert result_path.suffix == ".xlsx"
 
         # Verify contents
+        df_read = pd.read_excel(result_path)
+        pd.testing.assert_frame_equal(df_read, sample_dataframe)
+
+    def test_write_excel_alias(self, sample_dataframe, tmp_path):
+        """Test that 'excel' format works as an alias for 'xlsx'."""
+        output_file = tmp_path / "test.xlsx"
+        result_path = write_dataframe(sample_dataframe, str(output_file), "excel")
+
+        assert result_path.exists()
+        assert result_path.suffix == ".xlsx"
+
+        # Verify contents
+        df_read = pd.read_excel(result_path)
+        pd.testing.assert_frame_equal(df_read, sample_dataframe)
+
+    def test_write_excel_alias_auto_extension(self, sample_dataframe, tmp_path):
+        """Test that 'excel' format adjusts extension to .xlsx."""
+        output_file = tmp_path / "test.csv"
+        result_path = write_dataframe(sample_dataframe, str(output_file), "excel")
+
+        # Should have .xlsx extension, not .csv
+        assert result_path.suffix == ".xlsx"
+        assert result_path.name == "test.xlsx"
+
+        # Verify it's a valid Excel file
         df_read = pd.read_excel(result_path)
         pd.testing.assert_frame_equal(df_read, sample_dataframe)
 
@@ -253,7 +286,8 @@ class TestFormatConstants:
         assert "json" in SUPPORTED_FORMATS
         assert "parquet" in SUPPORTED_FORMATS
         assert "xlsx" in SUPPORTED_FORMATS
+        assert "excel" in SUPPORTED_FORMATS
 
     def test_format_count(self):
-        """Ensure we have exactly 4 supported formats."""
-        assert len(SUPPORTED_FORMATS) == 4
+        """Ensure we have exactly 5 supported formats (including 'excel' alias)."""
+        assert len(SUPPORTED_FORMATS) == 5
