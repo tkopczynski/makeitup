@@ -15,6 +15,7 @@ def _build_prompt(
     columns: dict[str, str],
     target: dict[str, str] | None,
     num_rows: int,
+    quality_issues: list[str] | None = None,
 ) -> str:
     """Build the prompt for data generation.
 
@@ -22,6 +23,7 @@ def _build_prompt(
         columns: Dictionary mapping column names to their descriptions
         target: Optional target column with 'name' and 'prompt' keys
         num_rows: Number of rows to generate
+        quality_issues: Optional list of quality issues to introduce
 
     Returns:
         Formatted prompt string
@@ -34,9 +36,32 @@ def _build_prompt(
     if target:
         target_section = f"\n- {target['name']} (target): {target['prompt']}"
 
+    quality_section = ""
+    if quality_issues:
+        issue_descriptions = []
+        if "nulls" in quality_issues:
+            issue_descriptions.append(
+                "- Include null/None values randomly in some fields (about 5-10% of values)"
+            )
+        if "outliers" in quality_issues:
+            issue_descriptions.append(
+                "- Include outlier values that are unusually high or low for numeric fields"
+            )
+        if "typos" in quality_issues:
+            issue_descriptions.append(
+                "- Include occasional typos or misspellings in text fields"
+            )
+        if "duplicates" in quality_issues:
+            issue_descriptions.append(
+                "- Include some duplicate rows (about 5-10% of rows)"
+            )
+        quality_section = "\n\nData quality issues to introduce:\n" + "\n".join(
+            issue_descriptions
+        )
+
     return f"""Generate a dataset with exactly {num_rows} rows containing the following columns:
 
-{column_descriptions}{target_section}
+{column_descriptions}{target_section}{quality_section}
 
 Return ONLY a valid JSON array of objects. No explanation, no markdown, just the JSON array.
 Each object must have all the specified columns as keys.
@@ -79,6 +104,7 @@ def generate_dataset_with_llm(
     columns: dict[str, str],
     num_rows: int,
     target: dict[str, str] | None = None,
+    quality_issues: list[str] | None = None,
 ) -> list[dict[str, Any]]:
     """Generate synthetic data using LLM.
 
@@ -88,6 +114,8 @@ def generate_dataset_with_llm(
         num_rows: Number of rows to generate
         target: Optional target column dict with 'name' and 'prompt' keys.
                 Example: {"name": "will_churn", "prompt": "Boolean indicating customer churn"}
+        quality_issues: Optional list of quality issues to introduce.
+                        Supported: "nulls", "outliers", "typos", "duplicates"
 
     Returns:
         List of dictionaries containing the generated data
@@ -98,7 +126,7 @@ def generate_dataset_with_llm(
     logger.info(f"Generating {num_rows} rows with columns: {list(columns.keys())}")
 
     # Build prompt
-    prompt = _build_prompt(columns, target, num_rows)
+    prompt = _build_prompt(columns, target, num_rows, quality_issues)
     logger.debug(f"Prompt: {prompt}")
 
     # Call LLM

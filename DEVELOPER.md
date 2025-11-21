@@ -60,6 +60,7 @@ def generate_dataset(
     *,
     target: dict[str, str] | None = None,
     output_path: str | Path | None = None,
+    quality_issues: list[str] | None = None,
 ) -> pd.DataFrame
 ```
 
@@ -71,6 +72,7 @@ def generate_dataset(
 | `num_rows` | `int` | Number of rows to generate |
 | `target` | `dict` (optional) | Target column with `name` and `prompt` keys |
 | `output_path` | `str \| Path` (optional) | Path to save output (format inferred from extension) |
+| `quality_issues` | `list[str]` (optional) | Data quality issues to introduce: `"nulls"`, `"outliers"`, `"typos"`, `"duplicates"` |
 
 **Returns:** `pandas.DataFrame`
 
@@ -100,6 +102,17 @@ df = generate_dataset(
     },
     num_rows=500,
     output_path="customers.parquet"
+)
+
+# With data quality issues for testing data pipelines
+df = generate_dataset(
+    columns={
+        "name": "Person's full name",
+        "age": "Age between 20 and 60",
+        "salary": "Annual salary in USD",
+    },
+    num_rows=100,
+    quality_issues=["nulls", "outliers"]
 )
 ```
 

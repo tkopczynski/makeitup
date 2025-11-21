@@ -17,6 +17,7 @@ def generate_dataset(
     *,
     target: dict[str, str] | None = None,
     output_path: str | Path | None = None,
+    quality_issues: list[str] | None = None,
 ) -> pd.DataFrame:
     """
     Generate synthetic data using LLM based on column descriptions.
@@ -32,6 +33,9 @@ def generate_dataset(
         output_path: Optional path to save the generated data.
                      Format is inferred from extension (.csv, .json, .parquet, .xlsx).
                      If not provided, data is only returned as DataFrame.
+        quality_issues: Optional list of data quality issues to introduce.
+                        Supported values: "nulls", "outliers", "typos", "duplicates".
+                        Example: ["nulls", "outliers"]
 
     Returns:
         pandas DataFrame containing the generated data
@@ -67,8 +71,20 @@ def generate_dataset(
         if "name" not in target or "prompt" not in target:
             raise ValueError("target must have 'name' and 'prompt' keys")
 
+    # Validate quality_issues if provided
+    valid_quality_issues = {"nulls", "outliers", "typos", "duplicates"}
+    if quality_issues is not None:
+        if not isinstance(quality_issues, list):
+            raise ValueError("quality_issues must be a list")
+        invalid = set(quality_issues) - valid_quality_issues
+        if invalid:
+            raise ValueError(
+                f"Invalid quality_issues: {invalid}. "
+                f"Valid options: {sorted(valid_quality_issues)}"
+            )
+
     # Generate data using LLM
-    data = generate_dataset_with_llm(columns, num_rows, target)
+    data = generate_dataset_with_llm(columns, num_rows, target, quality_issues)
 
     # Convert to DataFrame
     df = pd.DataFrame(data)

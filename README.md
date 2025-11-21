@@ -63,6 +63,21 @@ df = generate_dataset(
 )
 ```
 
+### Data Quality Degradation
+
+```python
+# Generate dataset with intentional quality issues for testing data pipelines
+df = generate_dataset(
+    columns={
+        "name": "Person's full name",
+        "age": "Age between 20 and 60",
+        "salary": "Annual salary in USD, 30000-150000",
+    },
+    num_rows=100,
+    quality_issues=["nulls", "outliers"],  # Options: nulls, outliers, typos, duplicates
+)
+```
+
 ### Save to File
 
 ```python

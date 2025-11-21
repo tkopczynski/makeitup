@@ -43,6 +43,20 @@ class TestGenerateDatasetValidation:
                     columns={"age": "Age"}, num_rows=1, output_path=tmp_path / "data.txt"
                 )
 
+    def test_invalid_quality_issues_not_list(self):
+        """Test that non-list quality_issues raises ValueError."""
+        with pytest.raises(ValueError, match="quality_issues must be a list"):
+            generate_dataset(
+                columns={"age": "Age of person"}, num_rows=10, quality_issues="nulls"
+            )
+
+    def test_invalid_quality_issues_unknown_value(self):
+        """Test that unknown quality_issues value raises ValueError."""
+        with pytest.raises(ValueError, match="Invalid quality_issues"):
+            generate_dataset(
+                columns={"age": "Age of person"}, num_rows=10, quality_issues=["invalid"]
+            )
+
 
 class TestGenerateDatasetWithMock:
     """Tests for generate_dataset() with mocked LLM."""
@@ -106,6 +120,31 @@ class TestGenerateDatasetWithMock:
             assert output_file.exists()
             loaded = pd.read_csv(output_file)
             assert len(loaded) == 3
+
+    def test_with_quality_issues(self):
+        """Test generation with quality_issues parameter."""
+        response_with_nulls = [
+            {"name": "John Smith", "age": 32, "salary": 75000},
+            {"name": None, "age": 28, "salary": 62000},
+            {"name": "Jane Doe", "age": None, "salary": 120000},
+        ]
+
+        with patch("data_generation.core.generator.ChatOpenAI") as mock_llm_class:
+            mock_llm = MagicMock()
+            mock_llm.invoke.return_value.content = json.dumps(response_with_nulls)
+            mock_llm_class.return_value = mock_llm
+
+            df = generate_dataset(
+                columns={"name": "Person name", "age": "Age", "salary": "Salary"},
+                num_rows=3,
+                quality_issues=["nulls"],
+            )
+
+            assert isinstance(df, pd.DataFrame)
+            assert len(df) == 3
+            # Verify prompt included quality issues instruction
+            call_args = mock_llm.invoke.call_args[0][0]
+            assert "null" in call_args.lower()
 
 
 class TestExports:
@@ -195,3 +234,24 @@ class TestIntegration:
         assert isinstance(df, pd.DataFrame)
         assert len(df) == 5
         assert "churned" in df.columns
+
+    def test_generate_with_quality_issues(self):
+        """Test generation with data quality degradation (nulls, outliers)."""
+        df = generate_dataset(
+            columns={
+                "name": "Person's full name",
+                "age": "Age between 20 and 60",
+                "salary": "Annual salary in USD, 30000-150000",
+            },
+            num_rows=20,
+            quality_issues=["nulls", "outliers"],
+        )
+
+        assert isinstance(df, pd.DataFrame)
+        assert len(df) >= 15  # Allow some flexibility due to LLM
+        assert "name" in df.columns
+        assert "age" in df.columns
+        assert "salary" in df.columns
+        # Check that some null values exist (quality degradation)
+        has_nulls = df.isnull().any().any()
+        # Note: LLM may or may not introduce nulls, so we just verify it runs
