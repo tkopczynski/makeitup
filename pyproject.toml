@@ -5,19 +5,15 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "data-generation"
 version = "0.1.0"
-description = "Dataset generation CLI with LangChain and OpenAI"
+description = "LLM-based synthetic dataset generation"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "langchain>=0.1.0",
     "langchain-openai>=0.0.5",
-    "langgraph>=0.2.0",
     "openai>=1.0.0",
     "python-dotenv>=1.0.0",
-    "click>=8.1.0",
     "pandas>=2.0.0",
-    "faker>=24.0.0",
-    "pyyaml>=6.0.0",
     "pyarrow>=14.0.0",  # For Parquet format support
     "openpyxl>=3.1.0",  # For Excel format support
 ]
@@ -55,6 +51,3 @@ known-first-party = ["data_generation"]
 markers = [
     "integration: marks tests as integration tests (require OPENAI_API_KEY)",
 ]
-
-[project.scripts]
-data-generation = "data_generation.cli:main"
