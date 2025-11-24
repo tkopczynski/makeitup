@@ -1,12 +1,30 @@
 """Tests for the make() API."""
 
-import json
 from unittest.mock import MagicMock, patch
 
 import pandas as pd
 import pytest
 
 from makeitup import make
+
+
+def create_mock_structured_response(data: list[dict]):
+    """Helper to create a mock structured LLM response.
+
+    Args:
+        data: List of dictionaries representing the data rows
+
+    Returns:
+        Mock response with .rows attribute containing mock Pydantic models
+    """
+    mock_response = MagicMock()
+    mock_rows = []
+    for row_data in data:
+        mock_row = MagicMock()
+        mock_row.model_dump.return_value = row_data
+        mock_rows.append(mock_row)
+    mock_response.rows = mock_rows
+    return mock_response
 
 
 class TestMakeValidation:
@@ -31,7 +49,9 @@ class TestMakeValidation:
         """Test that invalid file extension raises ValueError."""
         with patch("makeitup.core.generator.ChatOpenAI") as mock_llm_class:
             mock_llm = MagicMock()
-            mock_llm.invoke.return_value.content = '[{"age": 30}]'
+            mock_structured_llm = MagicMock()
+            mock_structured_llm.invoke.return_value = create_mock_structured_response([{"age": 30}])
+            mock_llm.with_structured_output.return_value = mock_structured_llm
             mock_llm_class.return_value = mock_llm
 
             with pytest.raises(ValueError, match="Cannot infer format"):
@@ -64,7 +84,10 @@ class TestMakeWithMock:
         """Test that make returns a DataFrame."""
         with patch("makeitup.core.generator.ChatOpenAI") as mock_llm_class:
             mock_llm = MagicMock()
-            mock_llm.invoke.return_value.content = json.dumps(mock_llm_response)
+            mock_structured_llm = MagicMock()
+            response = create_mock_structured_response(mock_llm_response)
+            mock_structured_llm.invoke.return_value = response
+            mock_llm.with_structured_output.return_value = mock_structured_llm
             mock_llm_class.return_value = mock_llm
 
             df = make(columns={"age": "Age", "salary": "Salary"}, num_rows=3)
@@ -84,7 +107,10 @@ class TestMakeWithMock:
 
         with patch("makeitup.core.generator.ChatOpenAI") as mock_llm_class:
             mock_llm = MagicMock()
-            mock_llm.invoke.return_value.content = json.dumps(response_with_target)
+            mock_structured_llm = MagicMock()
+            response = create_mock_structured_response(response_with_target)
+            mock_structured_llm.invoke.return_value = response
+            mock_llm.with_structured_output.return_value = mock_structured_llm
             mock_llm_class.return_value = mock_llm
 
             df = make(
@@ -99,7 +125,10 @@ class TestMakeWithMock:
         """Test that output_path saves the file."""
         with patch("makeitup.core.generator.ChatOpenAI") as mock_llm_class:
             mock_llm = MagicMock()
-            mock_llm.invoke.return_value.content = json.dumps(mock_llm_response)
+            mock_structured_llm = MagicMock()
+            response = create_mock_structured_response(mock_llm_response)
+            mock_structured_llm.invoke.return_value = response
+            mock_llm.with_structured_output.return_value = mock_structured_llm
             mock_llm_class.return_value = mock_llm
 
             output_file = tmp_path / "test.csv"
@@ -119,7 +148,10 @@ class TestMakeWithMock:
 
         with patch("makeitup.core.generator.ChatOpenAI") as mock_llm_class:
             mock_llm = MagicMock()
-            mock_llm.invoke.return_value.content = json.dumps(response_with_nulls)
+            mock_structured_llm = MagicMock()
+            response = create_mock_structured_response(response_with_nulls)
+            mock_structured_llm.invoke.return_value = response
+            mock_llm.with_structured_output.return_value = mock_structured_llm
             mock_llm_class.return_value = mock_llm
 
             df = make(
@@ -131,7 +163,7 @@ class TestMakeWithMock:
             assert isinstance(df, pd.DataFrame)
             assert len(df) == 3
             # Verify prompt included quality issues instruction
-            call_args = mock_llm.invoke.call_args[0][0]
+            call_args = mock_structured_llm.invoke.call_args[0][0]
             assert "null" in call_args.lower()
 
 

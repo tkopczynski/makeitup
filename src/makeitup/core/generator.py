@@ -1,10 +1,10 @@
 """Core LLM-based data generation engine."""
 
-import json
 import logging
 from typing import Any
 
 from langchain_openai import ChatOpenAI
+from pydantic import BaseModel, Field, create_model
 
 from makeitup import config
 
@@ -57,41 +57,42 @@ def _build_prompt(
 
 {column_descriptions}{target_section}{quality_section}
 
-Return ONLY a valid JSON array of objects. No explanation, no markdown, just the JSON array.
-Each object must have all the specified columns as keys.
 Ensure variety and realism in the generated values."""
 
 
-def _parse_llm_response(response: str) -> list[dict[str, Any]]:
-    """Parse LLM response into list of dictionaries.
+def _create_dataset_model(
+    columns: dict[str, str],
+    target: dict[str, str] | None,
+    num_rows: int,
+) -> type[BaseModel]:
+    """Create a dynamic Pydantic model for the dataset.
 
     Args:
-        response: Raw LLM response string
+        columns: Dictionary mapping column names to their descriptions
+        target: Optional target column with 'name' and 'prompt' keys
+        num_rows: Number of rows to generate
 
     Returns:
-        List of dictionaries representing rows
-
-    Raises:
-        ValueError: If response cannot be parsed as JSON
+        Pydantic model class for the dataset
     """
-    # Clean up response - remove markdown code blocks if present
-    cleaned = response.strip()
-    if cleaned.startswith("```"):
-        # Remove first line (```json or ```)
-        lines = cleaned.split("\n")
-        cleaned = "\n".join(lines[1:])
-    if cleaned.endswith("```"):
-        cleaned = cleaned[:-3].strip()
+    # Build field definitions for a single row
+    field_definitions = {}
+    for col_name, col_description in columns.items():
+        field_definitions[col_name] = (Any, Field(description=col_description))
 
-    try:
-        data = json.loads(cleaned)
-    except json.JSONDecodeError as e:
-        raise ValueError(f"Failed to parse LLM response as JSON: {e}") from e
+    if target:
+        field_definitions[target["name"]] = (Any, Field(description=target["prompt"]))
 
-    if not isinstance(data, list):
-        raise ValueError(f"Expected JSON array, got {type(data).__name__}")
+    # Create the row model
+    RowModel = create_model("DataRow", **field_definitions)
 
-    return data
+    # Create the dataset model (wrapper for array of rows)
+    class Dataset(BaseModel):
+        rows: list[RowModel] = Field(
+            description=f"Array of exactly {num_rows} data rows with variety and realism"
+        )
+
+    return Dataset
 
 
 def generate_dataset_with_llm(
@@ -132,6 +133,9 @@ def generate_dataset_with_llm(
     prompt = _build_prompt(columns, target, num_rows, quality_issues)
     logger.debug(f"Prompt: {prompt}")
 
+    # Create dynamic Pydantic model for structured output
+    DatasetModel = _create_dataset_model(columns, target, num_rows)
+
     # Call LLM (use provided params, fall back to config)
     effective_temp = temperature if temperature is not None else config.DATA_GENERATION_TEMPERATURE
     llm_kwargs = {
@@ -146,28 +150,19 @@ def generate_dataset_with_llm(
         llm_kwargs["api_key"] = effective_api_key
 
     llm = ChatOpenAI(**llm_kwargs)
+    structured_llm = llm.with_structured_output(DatasetModel, method="function_calling")
 
-    response = llm.invoke(prompt)
-    response_text = response.content
+    # Invoke with structured output
+    response = structured_llm.invoke(prompt)
 
-    logger.debug(f"LLM response: {response_text[:500]}...")
+    logger.debug(f"Received structured response with {len(response.rows)} rows")
 
-    # Parse response
-    data = _parse_llm_response(response_text)
+    # Convert Pydantic models to list of dicts
+    data = [row.model_dump() for row in response.rows]
 
     # Validate row count
     if len(data) != num_rows:
         logger.warning(f"Expected {num_rows} rows, got {len(data)}")
-
-    # Validate columns
-    expected_columns = set(columns.keys())
-    if target:
-        expected_columns.add(target["name"])
-
-    for i, row in enumerate(data):
-        missing = expected_columns - set(row.keys())
-        if missing:
-            logger.warning(f"Row {i} missing columns: {missing}")
 
     logger.info(f"Generated {len(data)} rows successfully")
 

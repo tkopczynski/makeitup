@@ -23,7 +23,7 @@ df = make(
 - **ML-ready datasets** - Add target columns for classification or regression
 - **Data quality testing** - Inject nulls, outliers, typos, or duplicates to test your pipelines
 - **Multiple formats** - Export to CSV, JSON, Parquet, or Excel
-- **Local model support** - Works with OpenAI, Ollama, vLLM, LMStudio, and any OpenAI-compatible API
+- **Local model support** - Works with OpenAI and any OpenAI-compatible API that supports structured output
 
 ## Installation
 
@@ -41,13 +41,23 @@ Or create a `.env` file in your project with `OPENAI_API_KEY=your-api-key`.
 
 ### Using a Local Model
 
-You can use locally deployed models (Ollama, vLLM, LMStudio, etc.) by setting the base URL:
+`makeitup` uses **structured output** to ensure reliable data generation. Local models must support OpenAI-compatible structured output (JSON schema enforcement).
+
+**Supported local setups:**
+- **llama.cpp** with function calling enabled (llama-server, LM Studio)
+- **vLLM** with `--enable-auto-tool-choice`
+- **Ollama** (version 0.3.0+) - newer models like llama3.1, qwen2.5
+- Any OpenAI-compatible API that implements structured output
+
+**Example configuration:**
 
 ```bash
-export LLM_BASE_URL=http://localhost:11434/v1
-export LLM_MODEL=llama3
+export LLM_BASE_URL=http://localhost:11434/v1  # Ollama
+export LLM_MODEL=llama3.1
 export LLM_API_KEY=not-needed  # Required by some local servers
 ```
+
+**Note:** Not all local models support structured output. If you encounter errors, verify your model and server support JSON schema enforcement.
 
 ## Examples
 
@@ -123,7 +133,7 @@ df = make(
 ## Requirements
 
 - Python >= 3.12
-- OpenAI API key or a local model (Ollama, vLLM, etc.)
+- OpenAI API key or a local model that supports structured output (see "Using a Local Model" above)
 
 ## Documentation
 
